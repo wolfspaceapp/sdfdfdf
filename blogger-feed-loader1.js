@@ -7,7 +7,7 @@ window.BloggerFeedLoader = (function() {
 
     // Configuración del feed de Blogger
     const BLOGGER_CONFIG = {
-        blogUrl: 'https://testerterabox44.blogspot.com', // Tu URL de Blogger
+        blogUrl: 'https://kodamaviewer.blogspot.com/', // Tu URL de Blogger
         maxResults: 500, // Máximo de posts a obtener
         label: '', // Etiqueta específica (vacío = todos los posts)
     };
