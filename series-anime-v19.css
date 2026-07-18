@@ -1639,13 +1639,25 @@ body {
     padding: 0;
   }
 
-  /* Columna izquierda: Hero con info de la serie */
+  /* Columna izquierda: Hero con info de la serie - misma altura que sidebar */
   #serie-detail-section {
     flex: 1;
     min-width: 0;
     position: sticky;
     top: 0;
     align-self: flex-start;
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+  #serie-detail-section::-webkit-scrollbar {
+    width: 4px;
+  }
+  #serie-detail-section::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  #serie-detail-section::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
   }
 
   /* ── Hero: Poster + Info en desktop — cinematic layout ── */
@@ -2264,69 +2276,71 @@ body {
   }
 
   #player-header {
-    height: 48px;
-    padding: 0 10px;
-    gap: 6px;
+    height: 52px;
+    padding: 0 12px;
+    gap: 8px;
   }
 
   #player-footer {
-    height: 48px;
-    padding: 0 10px;
-    gap: 6px;
+    height: 52px;
+    padding: 0 12px;
+    gap: 8px;
   }
 
   .nav-btn {
-    padding: 6px 10px;
-    font-size: 11px;
-    gap: 4px;
+    padding: 8px 14px;
+    font-size: 12px;
+    gap: 6px;
+    border-radius: 10px;
   }
 
   .nav-btn svg {
-    width: 14px;
-    height: 14px;
-  }
-
-  /* Ocultar texto de los botones de navegación en móvil si son muy largos */
-  .nav-btn span {
-    font-size: 10px;
-  }
-
-  .action-btn {
-    padding: 6px 8px;
-    font-size: 11px;
-    gap: 0;
-    border-radius: 50%;
-    width: 34px;
-    height: 34px;
-    justify-content: center;
-  }
-
-  .action-btn svg {
     width: 16px;
     height: 16px;
   }
 
-  .action-btn span {
-    display: none;
-  }
-
-  #player-ep-title {
+  /* Mostrar texto en botones de navegación en móvil */
+  .nav-btn span {
     font-size: 11px;
-    max-width: 80px;
   }
 
-  #btn-close-player {
-    width: 32px;
-    height: 32px;
+  .action-btn {
+    padding: 8px 10px;
+    font-size: 12px;
+    gap: 4px;
+    border-radius: 10px;
+    width: auto;
+    height: auto;
+    justify-content: center;
   }
 
-  #btn-close-player svg {
+  .action-btn svg {
     width: 18px;
     height: 18px;
   }
 
+  .action-btn span {
+    display: inline;
+    font-size: 11px;
+  }
+
+  #player-ep-title {
+    font-size: 12px;
+    max-width: 120px;
+  }
+
+  #btn-close-player {
+    width: 36px;
+    height: 36px;
+  }
+
+  #btn-close-player svg {
+    width: 20px;
+    height: 20px;
+  }
+
   .player-actions {
-    gap: 4px;
+    gap: 6px;
   }
 
   /* El contenedor del video debe ocupar el espacio disponible */
@@ -2349,13 +2363,20 @@ body {
   }
 
   /* Ajustes para el picker en móvil */
+  #vp-custom-picker > div {
+    width: min(380px, calc(100% - 24px)) !important;
+    max-height: 85vh !important;
+  }
+
   #vp-custom-picker h3 {
-    font-size: 16px !important;
+    font-size: 17px !important;
+    padding: 16px 18px 14px !important;
   }
 
   .vp-picker-opt {
-    padding: 12px 14px !important;
-    font-size: 14px !important;
+    padding: 14px 16px !important;
+    font-size: 15px !important;
+    border-radius: 12px !important;
   }
 }
 
@@ -2366,55 +2387,58 @@ body {
 /* Orientación landscape en móviles: player ocupa toda la altura */
 @media (orientation: landscape) and (max-height: 500px) {
   #player-header {
-    height: 38px;
-    padding: 0 8px;
-    gap: 4px;
+    height: 42px;
+    padding: 0 10px;
+    gap: 6px;
   }
 
   #player-footer {
-    height: 38px;
-    padding: 0 8px;
-    gap: 4px;
+    height: 42px;
+    padding: 0 10px;
+    gap: 6px;
   }
 
   #player-ep-title {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   #btn-close-player {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
   }
 
   #btn-close-player svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .nav-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+    gap: 5px;
+  }
+
+  .nav-btn svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .action-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+    gap: 4px;
+    border-radius: 8px;
+    width: auto;
+    height: auto;
+  }
+
+  .action-btn svg {
     width: 16px;
     height: 16px;
   }
 
-  .nav-btn {
-    padding: 4px 10px;
-    font-size: 10px;
-    gap: 4px;
-  }
-
-  .nav-btn svg {
-    width: 14px;
-    height: 14px;
-  }
-
-  .action-btn {
-    padding: 4px 8px;
-    font-size: 10px;
-    gap: 4px;
-  }
-
-  .action-btn svg {
-    width: 14px;
-    height: 14px;
-  }
-
   .player-actions {
-    gap: 3px;
+    gap: 4px;
   }
 
   #player-wrap {
@@ -2471,57 +2495,62 @@ body {
 /* Portrait en móviles: optimizar espacio vertical del player */
 @media (orientation: portrait) and (max-width: 767px) {
   #player-header {
-    height: 44px;
+    height: 48px;
     padding: 0 10px;
   }
 
   #player-footer {
-    height: 44px;
+    height: 48px;
     padding: 0 10px;
   }
 
   #player-ep-title {
-    font-size: 11px;
-    max-width: 100px;
+    font-size: 12px;
+    max-width: 120px;
   }
 
   #btn-close-player {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
   }
 
   #btn-close-player svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
   }
 
   .nav-btn {
-    padding: 5px 10px;
-    font-size: 11px;
+    padding: 6px 12px;
+    font-size: 12px;
+    gap: 6px;
   }
 
   .nav-btn svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
   }
 
   .action-btn {
-    padding: 5px 8px;
-    font-size: 11px;
+    padding: 6px 10px;
+    font-size: 12px;
     gap: 4px;
+    border-radius: 10px;
+    width: auto;
+    height: auto;
   }
 
   .action-btn svg {
-    width: 15px;
-    height: 15px;
+    width: 17px;
+    height: 17px;
   }
 
   .action-btn span {
-    display: none;
+    display: inline;
+    font-size: 11px;
   }
 
   .player-actions {
-    gap: 4px;
+    gap: 6px;
   }
 
   /* Loading ring más grande en portrait */
@@ -2835,15 +2864,17 @@ body {
 @media (max-width: 359px) {
   #vp-custom-picker > div {
     padding: 16px 12px !important;
+    width: calc(100% - 16px) !important;
   }
 
   #vp-custom-picker h3 {
-    font-size: 15px !important;
+    font-size: 16px !important;
+    padding: 14px 14px 12px !important;
   }
 
   .vp-picker-opt {
-    padding: 10px 12px !important;
-    font-size: 13px !important;
+    padding: 12px 14px !important;
+    font-size: 14px !important;
   }
 }
 
