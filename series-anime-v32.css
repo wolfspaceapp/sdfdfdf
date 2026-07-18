@@ -452,6 +452,13 @@ body {
   background: rgba(255, 255, 255, 0.07);
 }
 
+/* Focus visible para navegación por teclado (Tab) */
+.ep-card-compact:focus-visible {
+  outline: 2px solid var(--accent, #00E676);
+  outline-offset: 2px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
 
 .ep-card-compact.watched {
   opacity: 0.65;
@@ -1757,7 +1764,7 @@ body {
     align-items: center !important;
     gap: 2px;
     text-align: center !important;
-    flex: none !important;
+    flex: 1 !important;
   }
   #serie-detail-meta > *:first-child {
     border-left: none !important;
@@ -1794,9 +1801,9 @@ body {
     max-width: 360px;
     padding: 16px 16px 16px 0;
     position: sticky;
-    top: 0;
+    top: 56px;
     align-self: flex-start;
-    max-height: 100vh;
+    max-height: calc(100vh - 56px);
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -1834,7 +1841,7 @@ body {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    padding: 12px 0 24px 0 !important;
+    padding: 8px 0 16px 0 !important;
     flex: 1;
     overflow-y: auto;
   }
@@ -1842,7 +1849,7 @@ body {
   #recommended-list .recommended-grid {
     width: 100% !important;
     box-sizing: border-box !important;
-    padding-right: 16px;
+    padding-right: 4px;
   }
 
   /* Header de temporada y ordenar - centrado en desktop */
@@ -3994,35 +4001,35 @@ svg {
 
 #recommended-list .recommended-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
   width: 100%;
   box-sizing: border-box;
 }
 
-/* Tarjeta de recomendado */
+/* Tarjeta de recomendado - más pequeña */
 .rec-card {
   display: flex;
   flex-direction: column;
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.06);
   cursor: pointer;
-  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease, border-color 0.25s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   animation: rec-card-fade-in 0.4s ease both;
 }
 
 @media (hover: hover) {
 .rec-card:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  border-color: rgba(0,230,118,0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  border-color: rgba(0,230,118,0.2);
 }
 }
 
 .rec-card:active {
-  transform: translateY(-1px) scale(0.98);
+  transform: translateY(0) scale(0.97);
 }
 
 .rec-card-img {
@@ -4045,12 +4052,12 @@ svg {
 
 .rec-card-status {
   position: absolute;
-  top: 6px;
-  left: 6px;
-  font-size: 8px;
+  top: 4px;
+  left: 4px;
+  font-size: 7px;
   font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 20px;
+  padding: 1px 4px;
+  border-radius: 12px;
   background: rgba(0,0,0,0.65);
   color: #00E676;
   z-index: 1;
@@ -4059,17 +4066,17 @@ svg {
 }
 
 .rec-card-body {
-  padding: 8px 8px 10px;
+  padding: 5px 5px 7px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .rec-card-title {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   color: #f0f0f0;
-  line-height: 1.25;
+  line-height: 1.2;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -4080,17 +4087,17 @@ svg {
 .rec-card-meta {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   flex-wrap: wrap;
 }
 
 .rec-card-pill {
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 600;
   color: #888899;
   background: rgba(255,255,255,0.06);
-  padding: 1px 6px;
-  border-radius: 20px;
+  padding: 1px 4px;
+  border-radius: 12px;
   white-space: nowrap;
 }
 
@@ -4101,18 +4108,18 @@ svg {
 
 .rec-card-genres {
   display: flex;
-  gap: 3px;
+  gap: 2px;
   flex-wrap: wrap;
-  margin-top: 1px;
+  margin-top: 0;
 }
 
 .rec-card-genre-tag {
-  font-size: 8px;
+  font-size: 7px;
   font-weight: 600;
   color: #666677;
   background: rgba(255,255,255,0.04);
-  padding: 1px 5px;
-  border-radius: 12px;
+  padding: 0 4px;
+  border-radius: 8px;
   white-space: nowrap;
   border: 1px solid rgba(255,255,255,0.05);
 }
