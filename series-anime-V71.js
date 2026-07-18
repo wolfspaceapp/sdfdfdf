@@ -570,7 +570,7 @@ function renderTabs() {
         ? 'background:#111;border-radius:16px;padding:0;max-width:420px;width:90%;display:flex;flex-direction:column;overflow:hidden;transform:scale(0.9);transition:transform 0.25s cubic-bezier(0.32,0.72,0,1)'
         : 'position:absolute;bottom:0;left:0;right:0;background:#111;border-radius:20px 20px 0 0;padding:0;max-height:70vh;display:flex;flex-direction:column;overflow:hidden;transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1)';
     const overlayAlignStyle = isPC
-        ? 'display:flex;align-items:center;justify-content:center'
+        ? 'align-items:center;justify-content:center'
         : '';
 
     // Botón selector de temporada (solo el trigger, el modal va en document.body)
