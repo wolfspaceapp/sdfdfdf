@@ -9,7 +9,18 @@
         if (window._searchCacheBuilt) return;
         DATA.forEach(d => {
             const tagsText = Array.isArray(d.tags) ? d.tags.join(' ') : (d.tags || '');
-            d._searchText = `${d.title || ''} ${d.description || ''} ${tagsText} ${d.category || ''}`.toLowerCase();
+            // Incluir título, descripción, tags, categoría, y también el título sin acentos para búsqueda flexible
+            const title = d.title || '';
+            const desc = d.description || '';
+            const cat = d.category || '';
+            // Versión sin acentos para búsqueda tolerante
+            const noAccent = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const titleNoAccent = noAccent(title);
+            const descNoAccent = noAccent(desc);
+            const tagsNoAccent = noAccent(tagsText);
+            // También incluir palabras individuales del título para búsqueda parcial
+            const titleWords = title.toLowerCase().split(/[\s,.-]+/).filter(w => w.length > 1).join(' ');
+            d._searchText = `${title} ${desc} ${tagsText} ${cat} ${titleNoAccent} ${descNoAccent} ${tagsNoAccent} ${titleWords}`.toLowerCase();
         });
         window._searchCacheBuilt = true;
     }
@@ -359,7 +370,7 @@
                 const q = row.dataset.historyQ;
                 $('search-input').value = q;
                 navigateTo('search');
-                renderSearch(q, state.catFilter);
+                renderSearch(q);
             }
         };
     }
@@ -464,9 +475,8 @@
         renderFavorites();
         renderProfile();
         renderCategories();
-        renderFilterChips();
         if (state.view === 'all-library') renderAllLibrary();
-        if (state.view === 'search') renderSearch($('search-input')?.value || '', state.catFilter);
+        if (state.view === 'search') renderSearch($('search-input')?.value || '');
         if (state.view === 'settings-data') updateSearchHistoryCountLabel();
     }
 
@@ -644,7 +654,7 @@
         }
         if (p.q) {
             if ($('search-input')) $('search-input').value = p.q;
-            renderSearch(p.q, p.cat || null);
+            renderSearch(p.q);
             navigateTo('search');
             return true;
         }
@@ -762,7 +772,13 @@
         });
     }
 
+    let _homeRendering = false;
     function renderHome() {
+        // Evitar re-renderizados duplicados en rápida sucesión
+        if (_homeRendering) return;
+        _homeRendering = true;
+        requestAnimationFrame(() => { _homeRendering = false; });
+
         const featured = visibleDATA().filter(d => d.featured);
         const airing = visibleDATA().filter(d => d.status === 'En emisión').slice(0, 10);
 
@@ -1005,7 +1021,7 @@
   </div>`;
     }
 
-    function renderSearch(q = '', cat = null) {
+    function renderSearch(q = '') {
         const grid = $('search-grid');
         const empty = $('search-empty');
         const meta = $('search-meta');
@@ -1026,11 +1042,11 @@
         let results = visibleDATA();
 
         // Uso la caché pre-computada de búsqueda (muy rápido)
-        results = results.filter(d => (d._searchText || '').includes(lower));
-
-        if (cat) results = results.filter(d => {
-            const cats = d.category ? d.category.split(/,\s*/).map(c => c.trim()) : [];
-            return cats.includes(cat);
+        // También buscar sin acentos para mejorar resultados
+        const lowerNoAccent = lower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        results = results.filter(d => {
+            const st = d._searchText || '';
+            return st.includes(lower) || st.includes(lowerNoAccent);
         });
 
         if (!results.length) {
@@ -1340,7 +1356,7 @@
         }
 
         if (view === 'home' && state.prev !== null) renderHomeFavs();
-        if (view === 'search') { renderSearch($('search-input').value, state.catFilter); updateSearchHistoryCountLabel(); }
+        if (view === 'search') { renderSearch($('search-input').value); updateSearchHistoryCountLabel(); }
         if (view === 'search-history') renderSearchHistory();
         if (view === 'categories') renderCategories();
         if (view === 'all-library') renderAllLibrary();
@@ -1413,7 +1429,7 @@
         overlay.setAttribute('aria-hidden', 'true');
         if (state.view === 'favorites') renderFavorites();
         if (state.view === 'home') renderHome();
-        if (state.view === 'search') renderSearch($('search-input').value, state.catFilter);
+        if (state.view === 'search') renderSearch($('search-input').value);
         renderProfile();
 
         if (state.view === 'detail' && state.detail) {
@@ -1455,15 +1471,9 @@
 
     function renderFilterChips() {
         const chips = $('filter-chips');
-        const visibleCats = hCatEnabled ? [...CATEGORIES, 'H'] : CATEGORIES;
-        if (!hCatEnabled && state.catFilter === 'H') state.catFilter = null;
-        chips.innerHTML = `<div class="chip${!state.catFilter ? ' active' : ''}" data-chip="">Todos</div>` +
-            visibleCats.map(c => {
-                const cfg = CATS_CFG.find(x => x.name === c);
-                const accent = cfg ? cfg.accent : '#fff';
-                const active = state.catFilter === c ? ' active' : '';
-                return `<div class="chip${active}" data-chip="${c}" style="--chip-accent:${accent}">${c}</div>`;
-            }).join('');
+        if (!chips) return;
+        // Filter chips ya no se usan en búsqueda, solo se renderiza vacío
+        chips.innerHTML = '';
     }
 
     // ── Modal Confirmar Eliminación ──
@@ -1595,13 +1605,7 @@
             return;
         }
 
-        const chip = e.target.closest('[data-chip]');
-        if (chip) {
-            state.catFilter = chip.dataset.chip || null;
-            document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.chip === (chip.dataset.chip)));
-            renderSearch($('search-input').value, state.catFilter);
-            return;
-        }
+        // NOTA: Los chips de categoría en búsqueda han sido eliminados
 
         const favChip = e.target.closest('[data-fav-filter]');
         if (favChip) {
@@ -1638,9 +1642,7 @@
             const clear = $('search-clear');
             if (input) input.value = q;
             if (clear) clear.classList.add('visible');
-            state.catFilter = null;
-            renderSearch(q, null);
-            renderFilterChips();
+            renderSearch(q);
             navigateTo('search');
             return;
         }
@@ -1721,7 +1723,6 @@
             });
         }
 
-        renderFilterChips();
         renderHome();
         renderSearch();
         renderCategories();
@@ -1757,15 +1758,10 @@
                 const q = e.target.value;
                 searchClearEl.classList.toggle('visible', q.length > 0);
 
-                if (q.length > 0 && state.catFilter) {
-                    state.catFilter = null;
-                    renderFilterChips();
-                }
-
-                renderSearch(q, state.catFilter);
+                renderSearch(q);
                 if (state.view === 'search-history') navigateTo('search');
                 if (state.view === 'search') {
-                    updateURL({ view: 'search', q: q, cat: state.catFilter });
+                    updateURL({ view: 'search', q: q });
                 }
             }, 300));
 
@@ -1781,10 +1777,10 @@
             searchClearEl.addEventListener('click', () => {
                 searchInputEl.value = '';
                 searchClearEl.classList.remove('visible');
-                renderSearch('', state.catFilter);
+                renderSearch('');
                 renderSearchHistory();
                 if (state.view === 'search') {
-                    updateURL({ view: 'search', q: '', cat: state.catFilter });
+                    updateURL({ view: 'search', q: '' });
                 }
                 searchInputEl.focus();
             });
@@ -1835,9 +1831,8 @@
             saveHEnabled();
             renderProfile();
             renderCategories();
-            renderFilterChips();
             renderHome();
-            renderSearch($('search-input').value, state.catFilter);
+            renderSearch($('search-input').value);
             renderFavorites();
             if (!hCatEnabled && state.view === 'cat-library' && state.catFilter === 'H') {
                 navigateTo('categories', true);
