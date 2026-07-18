@@ -565,6 +565,14 @@ function renderTabs() {
     const currentLabel  = currentSeason ? (currentSeason.label || `Temporada ${currentSeason.num}`) : 'Temporada';
     const epCount       = currentSeason && currentSeason.episodes ? currentSeason.episodes.length : 0;
 
+    const isPC = GLOBAL_IS_PC;
+    const boxBottomStyle = isPC
+        ? 'position:relative;margin:auto;background:#000;border-radius:16px;padding:0;max-width:420px;width:90%;display:flex;flex-direction:column;overflow:hidden;transform:scale(0.9);transition:transform 0.25s cubic-bezier(0.32,0.72,0,1)'
+        : 'position:absolute;bottom:0;left:0;right:0;background:#000;border-radius:20px 20px 0 0;padding:0;max-height:70vh;display:flex;flex-direction:column;overflow:hidden;transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1)';
+    const overlayAlignStyle = isPC
+        ? 'display:flex;align-items:center;justify-content:center'
+        : '';
+
     // Botón selector de temporada
     container.innerHTML = `
         <button id="season-modal-trigger" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:7px 13px;color:#f0f0f0;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;max-width:100%;-webkit-tap-highlight-color:transparent">
@@ -575,8 +583,8 @@ function renderTabs() {
         </button>
 
         <!-- Modal overlay -->
-        <div id="season-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)" role="dialog" aria-modal="true" aria-label="Seleccionar temporada">
-          <div id="season-modal-box" style="position:absolute;bottom:0;left:0;right:0;background:#000;border-radius:20px 20px 0 0;padding:0;max-height:70vh;display:flex;flex-direction:column;overflow:hidden;transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1)">
+        <div id="season-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);${overlayAlignStyle}" role="dialog" aria-modal="true" aria-label="Seleccionar temporada">
+          <div id="season-modal-box" style="${boxBottomStyle}">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0">
               <span style="font-size:15px;font-weight:800;color:#fff">Temporadas</span>
               <button id="season-modal-close" style="background:rgba(255,255,255,0.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff">
@@ -608,13 +616,23 @@ function renderTabs() {
     const closeBtn= document.getElementById('season-modal-close');
 
     function openModal() {
-        overlay.style.display = 'block';
-        requestAnimationFrame(() => { box.style.transform = 'translateY(0)'; });
+        overlay.style.display = 'flex';
+        requestAnimationFrame(() => {
+            if (isPC) {
+                box.style.transform = 'scale(1)';
+            } else {
+                box.style.transform = 'translateY(0)';
+            }
+        });
         document.body.style.overflow = 'hidden';
     }
     function closeModal() {
-        box.style.transform = 'translateY(100%)';
-        setTimeout(() => { overlay.style.display = 'none'; }, 280);
+        if (isPC) {
+            box.style.transform = 'scale(0.9)';
+        } else {
+            box.style.transform = 'translateY(100%)';
+        }
+        setTimeout(() => { overlay.style.display = 'none'; }, 250);
         document.body.style.overflow = '';
     }
 
@@ -676,8 +694,8 @@ function initRecommendedTab() {
             } else if (tab === 'recommended') {
                 episodesList.style.display = 'none';
                 recommendedList.style.display = 'block';
-                // NO ocultar el sectionHeader para que temporada y ordenar no se muevan
-                if (sectionHeader) sectionHeader.style.display = 'flex';
+                // Ocultar temporada y ordenar en la tab de recomendados
+                if (sectionHeader) sectionHeader.style.display = 'none';
 
                 // Cargar recomendados si no se han cargado aún
                 if (!recommendedList.dataset.loaded) {
@@ -951,7 +969,7 @@ function renderEpisodeCard(ep, seasonIdx, watchedMap, resumeData) {
         ? `background-image:url('${ep.thumb}')`
         : `background:linear-gradient(135deg,#0a1628,#001a0d)`;
 
-    return `<div class="${cardClasses.join(' ')}" data-season="${seasonIdx}" data-episode="${ep.num}">
+    return `<div class="${cardClasses.join(' ')}" data-season="${seasonIdx}" data-episode="${ep.num}" tabindex="0" role="button" aria-label="Reproducir Episodio ${ep.num}">
   <!-- Miniatura -->
   <div class="ep-compact-thumb">
     <div class="ep-compact-thumb-img" style="${thumbStyle}"></div>
@@ -972,7 +990,7 @@ function renderEpisodeCard(ep, seasonIdx, watchedMap, resumeData) {
     ${ep.synopsis ? `<div class="ep-compact-synopsis">${ep.synopsis}</div>` : ''}
     <div class="ep-compact-footer">
       ${durationFmt ? `<span class="ep-compact-duration">${durationFmt}</span>` : '<div></div>'}
-      <label class="ep-compact-switch" data-season="${seasonIdx}" data-episode="${ep.num}" aria-label="${watched ? 'Marcar como no visto' : 'Marcar como visto'}" onclick="event.stopPropagation()">
+      <label class="ep-compact-switch" data-season="${seasonIdx}" data-episode="${ep.num}" data-watched="${watched ? 'true' : 'false'}" aria-label="${watched ? 'Marcar como no visto' : 'Marcar como visto'}" onclick="event.stopPropagation()">
         <span class="ep-compact-switch-label${watched ? ' on' : ''}" id="lbl-${seasonIdx}-${ep.num}">${watched ? 'Visto' : 'Marcar'}</span>
         <div class="ep-compact-switch-track${watched ? ' on' : ''}">
           <input type="checkbox" ${watched ? 'checked' : ''} style="display:none">
@@ -992,12 +1010,17 @@ function openSortModal() {
     const existing = document.getElementById('ep-sort-modal-overlay');
     if (existing) existing.remove();
     
+    const isPC = GLOBAL_IS_PC;
+    
     const overlay = document.createElement('div');
     overlay.id = 'ep-sort-modal-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity 0.2s';
+    overlay.style.cssText = `position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);display:flex;${isPC ? 'align-items:center;justify-content:center' : 'align-items:flex-end;justify-content:center'};opacity:0;transition:opacity 0.2s`;
     
     const sheet = document.createElement('div');
-    sheet.style.cssText = 'background:#000;width:100%;max-width:400px;border-radius:20px 20px 0 0;padding:20px 20px 28px;transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1);max-height:70vh;overflow-y:auto';
+    const sheetStyle = isPC
+        ? 'background:#000;width:100%;max-width:400px;border-radius:16px;padding:20px 20px 28px;transform:scale(0.9);transition:transform 0.25s cubic-bezier(0.32,0.72,0,1);max-height:70vh;overflow-y:auto'
+        : 'background:#000;width:100%;max-width:400px;border-radius:20px 20px 0 0;padding:20px 20px 28px;transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1);max-height:70vh;overflow-y:auto';
+    sheet.style.cssText = sheetStyle;
     
     const options = [
         { value: 'asc', label: 'Ascendente (1 → N)', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>' },
@@ -1027,13 +1050,13 @@ function openSortModal() {
     
     requestAnimationFrame(() => {
         overlay.style.opacity = '1';
-        sheet.style.transform = 'translateY(0)';
+        sheet.style.transform = isPC ? 'scale(1)' : 'translateY(0)';
     });
     
     function closeSortModal() {
         overlay.style.opacity = '0';
-        sheet.style.transform = 'translateY(100%)';
-        setTimeout(() => overlay.remove(), 280);
+        sheet.style.transform = isPC ? 'scale(0.9)' : 'translateY(100%)';
+        setTimeout(() => overlay.remove(), 250);
     }
     
     document.getElementById('ep-sort-close').addEventListener('click', closeSortModal);
@@ -1109,37 +1132,78 @@ function renderEpisodes(animate) {
         requestAnimationFrame(() => {
             list.innerHTML = eps.map(ep => renderEpisodeCard(ep, activeSeason, map, resumeData)).join('');
 
-            // ── Event delegation: card click → play ───────────────
-            list.querySelectorAll('.ep-card-compact').forEach(c =>
+            // ── Event delegation: card click / keyboard → play ────
+            list.querySelectorAll('.ep-card-compact').forEach(c => {
                 c.addEventListener('click', e => {
                     const s = +c.dataset.season, epNum = +c.dataset.episode;
                     playEpisode(s, epNum);
-                })
-            );
+                });
+                c.addEventListener('keydown', e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const s = +c.dataset.season, epNum = +c.dataset.episode;
+                        playEpisode(s, epNum);
+                    }
+                });
+            });
 
             // ── Switch de visto ───────────────────────────────────
             list.querySelectorAll('.ep-compact-switch').forEach(sw => {
                 const seasonIdx = +sw.dataset.season;
                 const epNum     = +sw.dataset.episode;
                 const track     = sw.querySelector('.ep-compact-switch-track');
-                const label     = sw.querySelector('.ep-compact-switch-label');
+                const labelEl   = sw.querySelector('.ep-compact-switch-label');
                 const input     = sw.querySelector('input');
                 sw.addEventListener('click', e => {
+                    e.preventDefault();
                     e.stopPropagation();
-                    const nowWatched = !input.checked;
-                    setWatched(seasonIdx, epNum, nowWatched);
+                    // Leer el estado actual desde el atributo data-watched (no del input,
+                    // porque el label nativo ya togglea el checkbox oculto)
+                    const currentlyWatched = sw.dataset.watched === 'true';
+                    const nowWatched = !currentlyWatched;
+                    sw.dataset.watched = nowWatched ? 'true' : 'false';
                     input.checked = nowWatched;
+                    setWatched(seasonIdx, epNum, nowWatched);
+                    // Actualizar Continue Watching metadata
+                    try {
+                        const metaKey = 'wa_cw_meta_' + SERIE.id;
+                        if (nowWatched) {
+                            const ep = (SERIE.seasons[seasonIdx]?.episodes || []).find(e => e.num === epNum);
+                            const season = SERIE.seasons[seasonIdx];
+                            const meta = {
+                                serieId: SERIE.id,
+                                serieTitle: SERIE.title,
+                                poster: ep?.thumb || SERIE.poster || SERIE.image || '',
+                                serieUrl: SERIE.urlContinue || '',
+                                seasonIdx: seasonIdx,
+                                seasonLabel: season ? (season.label || ('Temporada ' + season.num)) : '',
+                                epNum: epNum,
+                                epTitle: ep?.title || '',
+                                epType: (ep && ep.type) || 'episode',
+                                lang: '',
+                                resumeKey: '',
+                                currentTime: 0,
+                                duration: ep?.duration || 0,
+                                progress: 100,
+                                isH: (SERIE.tags || []).some(t => t.trim().toLowerCase() === 'h'),
+                                updatedAt: Date.now()
+                            };
+                            localStorage.setItem(metaKey, JSON.stringify(meta));
+                        } else {
+                            localStorage.removeItem(metaKey);
+                        }
+                    } catch (e) {}
                     if (nowWatched) {
                         track.classList.add('on');
-                        label.classList.add('on');
-                        label.textContent = 'Visto';
+                        labelEl.classList.add('on');
+                        labelEl.textContent = 'Visto';
                         sw.closest('.ep-card-compact')?.classList.add('watched');
                         const badge = sw.closest('.ep-card-compact')?.querySelector('.ep-compact-watched-badge');
                         if (badge) badge.style.display = '';
                     } else {
                         track.classList.remove('on');
-                        label.classList.remove('on');
-                        label.textContent = 'Marcar';
+                        labelEl.classList.remove('on');
+                        labelEl.textContent = 'Marcar';
                         sw.closest('.ep-card-compact')?.classList.remove('watched');
                         const badge = sw.closest('.ep-card-compact')?.querySelector('.ep-compact-watched-badge');
                         if (badge) badge.style.display = 'none';
@@ -2837,33 +2901,37 @@ document.addEventListener('click', (e) => {
     }
 }, true);
 
-// Botón de transmitir (cast)
+// Botón de transmitir (cast) — oculto en PC
 const castBtn = $('btn-cast');
 if (castBtn) {
-    castBtn.addEventListener('click', (e) => {
-        const btn = e.currentTarget;
+    if (GLOBAL_IS_PC) {
+        castBtn.style.display = 'none';
+    } else {
+        castBtn.addEventListener('click', (e) => {
+            const btn = e.currentTarget;
 
-        if (!currentEpisode || !currentEpisode.langs || !currentEpisode.langs[activeLang]) {
-            return;
-        }
+            if (!currentEpisode || !currentEpisode.langs || !currentEpisode.langs[activeLang]) {
+                return;
+            }
 
-        const server = currentEpisode.langs[activeLang].servers[activeServer];
-        if (!server || !server.url) {
-            return;
-        }
+            const server = currentEpisode.langs[activeLang].servers[activeServer];
+            if (!server || !server.url) {
+                return;
+            }
 
-        const url = server.url;
-        const castUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=${url.startsWith('https') ? 'https' : 'http'};package=com.instantbits.cast.webvideo;end`;
+            const url = server.url;
+            const castUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=${url.startsWith('https') ? 'https' : 'http'};package=com.instantbits.cast.webvideo;end`;
 
-        // Quitar el foco inmediatamente
-        setTimeout(() => btn.blur(), 0);
+            // Quitar el foco inmediatamente
+            setTimeout(() => btn.blur(), 0);
 
-        if (typeof window.openCastModal === 'function') {
-            window.openCastModal(castUrl);
-        } else {
-            window.location.href = castUrl;
-        }
-    });
+            if (typeof window.openCastModal === 'function') {
+                window.openCastModal(castUrl);
+            } else {
+                window.location.href = castUrl;
+            }
+        });
+    }
 }
 
 // ── Smart Header: ocultar/mostrar título en header según scroll ──
