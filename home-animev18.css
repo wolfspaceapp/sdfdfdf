@@ -4253,6 +4253,14 @@ input[type="text"]::-ms-clear {
     transition: opacity 0.2s;
 }
 
+@media (hover: hover) {
+    .cw-card:hover .cw-play-btn {
+        opacity: 1;
+    }
+    .cw-card:hover .cw-play-btn > svg {
+        transform: scale(1.1);
+    }
+}
 .cw-card:active .cw-play-btn {
     opacity: 1;
 }
