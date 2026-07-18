@@ -651,8 +651,17 @@
     const saveAutoplayEnabled = () => localStorage.setItem('autoplay_enabled', autoplayEnabled ? '1' : '0');
 
     const isH = item => {
-        if (!item || !item.category) return false;
-        return item.category.split(/,\s*/).map(c => c.trim()).includes('H');
+        if (!item) return false;
+        // Check category field
+        if (item.category) {
+            const cats = item.category.split(/,\s*/).map(c => c.trim());
+            if (cats.includes('H')) return true;
+        }
+        // Check tags array for 'H' tag
+        if (item.tags && Array.isArray(item.tags)) {
+            if (item.tags.some(t => t.trim().toUpperCase() === 'H')) return true;
+        }
+        return false;
     };
 
     // Deduplicar DATA por ID para evitar entradas repetidas
@@ -666,10 +675,7 @@
     };
 
     const visibleDATA = () => {
-        const filtered = hCatEnabled ? DATA : DATA.filter(d => {
-            const cats = d.category ? d.category.split(/,\s*/).map(c => c.trim()) : [];
-            return !cats.includes('H');
-        });
+        const filtered = hCatEnabled ? DATA : DATA.filter(d => !isH(d));
         return uniqueData(filtered);
     };
 
