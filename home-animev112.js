@@ -652,14 +652,24 @@
 
     const isH = item => {
         if (!item) return false;
-        // Check category field
+        // Check category field (case-insensitive)
         if (item.category) {
-            const cats = item.category.split(/,\s*/).map(c => c.trim());
+            const cats = item.category.split(/,\s*/).map(c => c.trim().toUpperCase());
             if (cats.includes('H')) return true;
         }
+        // Check genre field (alias for category)
+        if (item.genre) {
+            const genres = item.genre.split(/,\s*/).map(c => c.trim().toUpperCase());
+            if (genres.includes('H')) return true;
+        }
         // Check tags array for 'H' tag
-        if (item.tags && Array.isArray(item.tags)) {
-            if (item.tags.some(t => t.trim().toUpperCase() === 'H')) return true;
+        if (item.tags) {
+            if (Array.isArray(item.tags)) {
+                if (item.tags.some(t => t.trim().toUpperCase() === 'H')) return true;
+            } else if (typeof item.tags === 'string') {
+                const tagList = item.tags.split(/,\s*/).map(t => t.trim().toUpperCase());
+                if (tagList.includes('H')) return true;
+            }
         }
         return false;
     };
@@ -948,6 +958,13 @@
         const track = document.getElementById('cw-track');
         if (!section || !track) return;
 
+        // Build a lookup map from DATA for H-tag checking
+        const dataMap = {};
+        for (let i = 0; i < DATA.length; i++) {
+            const d = DATA[i];
+            if (d && d.id) dataMap[d.id] = d;
+        }
+
         // Collect all CW metadata from localStorage
         const items = [];
         for (let i = 0; i < localStorage.length; i++) {
@@ -956,6 +973,11 @@
                 try {
                     const meta = JSON.parse(localStorage.getItem(k));
                     if (meta && meta.serieId && meta.progress > 0 && meta.progress < 95) {
+                        // Filter out H-tagged content when +18 is disabled
+                        if (!hCatEnabled) {
+                            const entry = dataMap[meta.serieId];
+                            if (entry && isH(entry)) continue;
+                        }
                         items.push(meta);
                     }
                 } catch (e) {}
@@ -1183,7 +1205,9 @@
             const itemCats = item.category.split(/,\s*/);
             itemCats.forEach(c => {
                 const trimmed = c.trim();
-                counts[trimmed] = (counts[trimmed] || 0) + 1;
+                // Normalizar 'H' a mayúscula para conteo consistente
+                const key = trimmed.toUpperCase() === 'H' ? 'H' : trimmed;
+                counts[key] = (counts[key] || 0) + 1;
             });
         });
 
@@ -1211,9 +1235,12 @@
     function renderCatLibrary(cat) {
         $('cat-library-title').textContent = cat === 'H' ? 'Contenido H' : cat;
         const trimmedCat = cat.trim();
+        const catUpper = trimmedCat.toUpperCase();
         const items = visibleDATA().filter(d => {
             if (!d.category) return false;
             const cats = d.category.split(/,\s*/).map(c => c.trim());
+            // Comparación case-insensitive para 'H', exacta para el resto
+            if (catUpper === 'H') return cats.some(c => c.toUpperCase() === 'H');
             return cats.includes(trimmedCat);
         });
         if (items.length === 0) {
