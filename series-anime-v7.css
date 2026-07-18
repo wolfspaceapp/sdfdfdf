@@ -1,0 +1,1169 @@
+:root {
+  --accent: #00E676;
+  --accent-dim: rgba(0, 230, 118, 0.12);
+  --bg: #0A0A0A;
+  --bg2: #111;
+  --bg3: #1a1a1a;
+  --bg4: #222;
+  --text: #f0f0f0;
+  --text2: #888899;
+  --text3: #444455;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --transition: 0.28s cubic-bezier(0.4, 0, 0.2, 1)
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Header */
+#serie-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 56px;
+  padding: 0 16px;
+  padding-top: env(safe-area-inset-top);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06)
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background var(--transition)
+}
+
+.back-btn:active {
+  background: var(--bg3)
+}
+
+.header-title {
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text2)
+}
+
+/* Season Dropdown - Netflix Style */
+.season-dropdown {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.season-dropdown-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.season-dropdown-btn:hover {
+  background: var(--bg3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.season-dropdown-btn:active {
+  transform: scale(0.98);
+}
+
+.season-dropdown-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.season-label {
+  flex: 1;
+  text-align: left;
+  color: var(--text);
+}
+
+.chevron-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text2);
+}
+
+.season-dropdown-btn[aria-expanded="true"] .chevron-icon {
+  transform: rotate(180deg);
+}
+
+.season-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(17, 17, 17, 0.98);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.season-dropdown-menu[aria-hidden="false"] {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.season-dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.season-dropdown-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.season-dropdown-menu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.season-dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.season-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  min-height: 48px;
+  background: transparent;
+  color: var(--text2);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  width: 100%;
+  text-align: left;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.season-option:hover,
+.season-option:focus {
+  background: var(--bg3);
+  color: var(--text);
+}
+
+.season-option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.season-option[aria-selected="true"] {
+  background: rgba(0, 230, 118, 0.1);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.season-option[aria-selected="true"]::after {
+  content: '✓';
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-left: auto;
+}
+
+/* Tabs temporadas (fallback para compatibilidad) */
+.seasons-wrap {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 16px;
+}
+
+.seasons-tabs {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 16px
+}
+
+.seasons-tabs::-webkit-scrollbar {
+  display: none
+}
+
+.season-tab {
+  flex: 1;
+  padding: 12px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  background: none;
+  color: var(--text3);
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s;
+  white-space: nowrap;
+  margin-bottom: -1px;
+  text-align: center;
+  position: relative;
+}
+
+.season-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.season-tab.active {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.season-tab.active .season-indicator {
+  background: var(--accent);
+}
+
+.season-tab:active {
+  opacity: 0.7
+}
+
+/* ══════════════════════════════════════════════════════════
+   EPISODE CARDS — REDISEÑO COMPLETO
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Lista de episodios ── */
+.episodes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 16px 32px
+}
+
+@keyframes ep-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px)
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0)
+  }
+}
+
+.episodes-list.season-change .ep-card-compact {
+  opacity: 0;
+  animation: ep-fade-in 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.episodes-list.season-change .ep-card-compact:nth-child(1) { animation-delay: 0ms }
+.episodes-list.season-change .ep-card-compact:nth-child(2) { animation-delay: 50ms }
+.episodes-list.season-change .ep-card-compact:nth-child(3) { animation-delay: 100ms }
+.episodes-list.season-change .ep-card-compact:nth-child(4) { animation-delay: 150ms }
+.episodes-list.season-change .ep-card-compact:nth-child(5) { animation-delay: 200ms }
+.episodes-list.season-change .ep-card-compact:nth-child(6) { animation-delay: 250ms }
+.episodes-list.season-change .ep-card-compact:nth-child(7) { animation-delay: 300ms }
+.episodes-list.season-change .ep-card-compact:nth-child(8) { animation-delay: 350ms }
+.episodes-list.season-change .ep-card-compact:nth-child(9) { animation-delay: 400ms }
+.episodes-list.season-change .ep-card-compact:nth-child(10) { animation-delay: 450ms }
+.episodes-list.season-change .ep-card-compact:nth-child(11) { animation-delay: 500ms }
+.episodes-list.season-change .ep-card-compact:nth-child(12) { animation-delay: 550ms }
+.episodes-list.season-change .ep-card-compact:nth-child(n+13) { animation-delay: 600ms }
+
+/* ── Card de episodio (compacta, horizontal) ── */
+.ep-card-compact {
+  display: flex !important;
+  align-items: stretch !important;
+  gap: 14px !important;
+  padding: 12px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  cursor: pointer !important;
+  position: relative !important;
+  -webkit-tap-highlight-color: transparent !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  transform: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  transition: background 0.2s ease !important;
+}
+
+.ep-card-compact:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.ep-card-compact:active {
+  background: rgba(255, 255, 255, 0.06) !important;
+  transform: none !important;
+}
+
+.ep-card-compact.current-episode {
+  background: rgba(0, 230, 118, 0.06) !important;
+}
+
+.ep-card-compact.watched {
+  opacity: 0.7;
+}
+
+.ep-card-compact.watched:hover {
+  opacity: 1;
+}
+
+/* ── Miniatura ── */
+.ep-compact-thumb {
+  width: 120px !important;
+  height: 75px !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+  position: relative !important;
+  background: var(--bg3) !important;
+  align-self: center !important;
+}
+
+.ep-compact-thumb-img {
+  width: 100% !important;
+  height: 100% !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+/* ── Overlay play al hover ── */
+.ep-compact-thumb-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(0, 0, 0, 0.35) !important;
+  opacity: 0 !important;
+  transition: opacity 0.2s ease !important;
+}
+
+.ep-card-compact:hover .ep-compact-thumb-overlay {
+  opacity: 1 !important;
+}
+
+@media (hover: none) {
+  .ep-compact-thumb-overlay {
+    opacity: 1 !important;
+  }
+}
+
+/* ── Badge de visto ── */
+.ep-compact-watched-badge {
+  position: absolute !important;
+  top: 4px !important;
+  right: 4px !important;
+  background: rgba(0, 0, 0, 0.75) !important;
+  border-radius: 50% !important;
+  width: 20px !important;
+  height: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid rgba(0, 230, 118, 0.3) !important;
+  z-index: 2 !important;
+}
+
+/* ── Barra de progreso ── */
+.ep-compact-progress {
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 3px !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  z-index: 2 !important;
+}
+
+.ep-compact-progress-fill {
+  height: 100% !important;
+  background: #00E676 !important;
+  border-radius: 0 2px 2px 0 !important;
+  transition: width 0.3s ease !important;
+}
+
+/* ── Cuerpo (info derecha) ── */
+.ep-compact-body {
+  flex: 1 !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 2px !important;
+}
+
+.ep-compact-num-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-bottom: 4px !important;
+}
+
+.ep-compact-num {
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  color: #00E676 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.ep-compact-time-badge {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  color: #ffc107 !important;
+  background: rgba(255, 193, 7, 0.12) !important;
+  padding: 1px 6px !important;
+  border-radius: 10px !important;
+  margin-left: 4px !important;
+}
+
+.ep-compact-title {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #f0f0f0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.3 !important;
+  margin-bottom: 4px !important;
+}
+
+.ep-compact-synopsis {
+  font-size: 11.5px !important;
+  color: #9999aa !important;
+  line-height: 1.4 !important;
+  margin-bottom: 8px !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+.ep-compact-footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-top: auto !important;
+}
+
+.ep-compact-duration {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #777788 !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  padding: 2px 8px !important;
+  border-radius: 4px !important;
+}
+
+/* ── Switch de visto ── */
+.ep-compact-switch {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.ep-compact-switch-label {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #666677 !important;
+  transition: color 0.2s ease !important;
+  user-select: none !important;
+}
+
+.ep-compact-switch-label.on {
+  color: #00E676 !important;
+}
+
+.ep-compact-switch-track {
+  position: relative !important;
+  width: 32px !important;
+  height: 18px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 10px !important;
+  transition: background 0.3s ease !important;
+  flex-shrink: 0 !important;
+}
+
+.ep-compact-switch-track.on {
+  background: #00E676 !important;
+}
+
+.ep-compact-switch-thumb {
+  position: absolute !important;
+  top: 2px !important;
+  left: 2px !important;
+  width: 14px !important;
+  height: 14px !important;
+  background: #fff !important;
+  border-radius: 50% !important;
+  transition: left 0.3s ease !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+.ep-compact-switch-track.on .ep-compact-switch-thumb {
+  left: 16px !important;
+}
+
+/* ── Overrides para #episodes-list ── */
+#episodes-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  padding: 0 !important;
+}
+
+/* ── Animación de fade-in para season change ── */
+.episodes-list.season-change .ep-card-compact {
+  opacity: 0;
+  animation: ep-fade-in 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ── Card de episodio (legacy, para compatibilidad) ── */
+.ep-card {
+  display: flex;
+  align-items: stretch;
+  background: var(--bg2);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: transform 0.15s
+}
+
+.ep-card:active {
+  transform: scale(0.98)
+}
+
+@media (hover: hover) {
+  .ep-card:hover {
+    background: var(--bg3);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: scale(1.005);
+  }
+}
+
+/* Current episode highlight */
+.ep-card.in-progress {
+  border-color: rgba(0, 230, 118, 0.35);
+  box-shadow: 0 0 0 1px rgba(0, 230, 118, 0.2);
+}
+
+.ep-thumb {
+  width: 140px;
+  flex-shrink: 0;
+  position: relative;
+  background: var(--bg3);
+  align-self: stretch
+}
+
+.ep-thumb-img {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center
+}
+
+/* Progress bar – horizontal strip at bottom of thumbnail */
+.ep-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 0 2px 2px 0;
+  z-index: 2;
+  pointer-events: none;
+  transition: width 0.3s ease;
+}
+
+@media (min-width: 769px) {
+  .ep-progress-bar {
+    height: 4px;
+  }
+}
+
+/* Watched badge – top-right corner of thumbnail */
+.ep-watched-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 3;
+  line-height: 0;
+  color: var(--accent);
+  pointer-events: none;
+  animation: badge-fade-in 0.15s ease forwards;
+}
+
+.ep-watched-badge[hidden] {
+  display: none;
+}
+
+@keyframes badge-fade-in {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Play overlay – centered over thumbnail, shows on hover / always on mobile */
+.ep-thumb-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  opacity: 0;
+  background: rgba(0, 0, 0, 0.18);
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+@media (hover: none) {
+  /* On touch devices always show play icon */
+  .ep-thumb-overlay {
+    opacity: 1;
+  }
+}
+
+.ep-card:hover .ep-thumb-overlay {
+  opacity: 1;
+}
+
+.ep-thumb-overlay .play-icon {
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+}
+
+.ep-thumb-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center
+}
+
+.ep-thumb-num {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  text-align: center;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--accent);
+  padding: 2px 0
+}
+
+.ep-body {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px
+}
+
+.ep-num {
+  font-size: 10px;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.4px
+}
+
+.ep-title {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical
+}
+
+.ep-duration {
+  font-size: 11px;
+  color: var(--text3)
+}
+
+.ep-synopsis {
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  margin-top: 2px
+}
+
+/* Switch visto */
+.ep-switch-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px
+}
+
+.ep-switch-label {
+  font-size: 11px;
+  color: var(--text3);
+  transition: color 0.2s;
+  user-select: none
+}
+
+.ep-switch-label.on {
+  color: var(--accent)
+}
+
+.ep-switch {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  flex-shrink: 0;
+  cursor: pointer
+}
+
+.ep-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute
+}
+
+.ep-switch-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  background: var(--bg4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background 0.2s, border-color 0.2s
+}
+
+.ep-switch input:checked~.ep-switch-track {
+  background: var(--accent);
+  border-color: var(--accent)
+}
+
+.ep-switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+  pointer-events: none
+}
+
+.ep-switch input:checked~.ep-switch-thumb {
+  transform: translateX(14px)
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px
+}
+
+/* Botón configuración header */
+.cfg-btn {
+  background: none;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background var(--transition)
+}
+
+.cfg-btn:active {
+  background: var(--bg3)
+}
+
+/* Toggle pill (reutilizado del proyecto) */
+.toggle-pill {
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--bg4);
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0
+}
+
+.toggle-pill::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s
+}
+
+.toggle-pill.active {
+  background: var(--accent)
+}
+
+.toggle-pill.active::after {
+  transform: translateX(18px)
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   REPRODUCTOR INTEGRADO
+   ══════════════════════════════════════════════════════════ */
+
+#player-section {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+#player-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  height: 52px;
+  flex-shrink: 0;
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+#btn-close-player {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: none;
+  border: none;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition);
+  outline: none;
+}
+
+#btn-close-player:active {
+  background: var(--bg3);
+}
+
+#btn-close-player:focus {
+  background: none;
+}
+
+#btn-close-player:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+#player-ep-title {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text2);
+}
+
+.player-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: var(--bg2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.action-btn:active {
+  background: var(--bg3) !important;
+}
+
+.action-btn:focus {
+  background: var(--bg2) !important;
+}
+
+.action-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn-cast {
+  background: rgba(0, 230, 118, 0.1) !important;
+  border-color: rgba(0, 230, 118, 0.3) !important;
+  color: var(--accent) !important;
+}
+
+.btn-cast:active {
+  background: rgba(0, 230, 118, 0.22) !important;
+}
+
+.btn-cast:focus,
+.btn-cast:focus-within,
+.btn-cast:target {
+  background: rgba(0, 230, 118, 0.1) !important;
+  border-color: rgba(0, 230, 118, 0.3) !important;
+}
+
+.btn-cast:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn-cast svg {
+  stroke: var(--accent);
+}
+
+#player-wrap {
+  flex: 1;
+  background: #000;
+  overflow: hidden;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* Animación al cambiar fuente/episodio */
+@keyframes player-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+#player-wrap.switching {
+  opacity: 0;
+  transform: scale(0.98);
+}
+
+#player-wrap.loaded {
+  animation: player-fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.player-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text3);
+}
+
+.player-placeholder svg {
+  opacity: 0.3;
+}
+
+.player-placeholder p {
+  font-size: 13px;
+}
+
+#player-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  height: 52px;
+  flex-shrink: 0;
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: 20px;
+  background: var(--bg2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 700;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: background var(--transition);
+  outline: none;
+}
+
+.nav-btn:active {
+  background: var(--bg3);
+}
+
+.nav-btn:focus {
+  background: var(--bg2);
+}
+
+.nav-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.nav-btn:disabled {
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+#btn-next {
+  margin-left: auto;
+}
+
+/* Wolf Player container */
+.vp-wolf-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
+}
+
+#wolf-player-container {
+  width: 100%;
+  height: 100%;
+}
+
+#wolf-player-container .plyr {
+  width: 100%;
+  height: 100%;
+}
+
+/* Loading overlay */
+.vp-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.vp-loading.done {
+  opacity: 0;
+}
+
+.vp-loading-ring {
+  width: 48px;
+  height: 48px;
+}
+
