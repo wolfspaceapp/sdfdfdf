@@ -71,6 +71,14 @@ button:active,
     background: inherit !important;
     color: inherit !important;
   }
+
+  /* Los tabs deben mantener su color inline (verde cuando activo) */
+  .ep-tab-btn:focus,
+  .ep-tab-btn:focus-visible {
+    color: unset !important;
+    background: none !important;
+    outline: none;
+  }
 }
 
 *,
@@ -1502,6 +1510,38 @@ body {
   }
 }
 
+/* ── Estado "Reproduciendo" ── */
+.spb-playing {
+  background: linear-gradient(135deg, rgba(0,230,118,0.12), rgba(0,200,100,0.05));
+  border-radius: 14px;
+}
+.spb-icon-pulse {
+  animation: spb-pulse 2s ease-in-out infinite;
+  background: rgba(0, 230, 118, 0.2);
+}
+.spb-icon-pulse svg {
+  color: #00E676;
+}
+@keyframes spb-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.3); }
+  50% { box-shadow: 0 0 0 8px rgba(0, 230, 118, 0); }
+}
+.spb-label-playing {
+  color: #00E676 !important;
+}
+.spb-time-playing {
+  background: rgba(0, 230, 118, 0.15) !important;
+  color: #00E676 !important;
+}
+.spb-progress-fill-playing {
+  background: #00E676 !important;
+  animation: spb-progress-glow 1.5s ease-in-out infinite;
+}
+@keyframes spb-progress-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
 /* ── Layout interno: Reproducir (sin progreso) ── */
 .spb-play {
   display: flex;
@@ -1574,55 +1614,69 @@ body {
   #serie-detail-section {
     padding-top: 0;
   }
-  #serie-detail-section.is-pc {
-    /* Extra polish when JS detects PC */
+
+  /* ── CONTENEDOR PRINCIPAL: Hero (izquierda) + Episodios (derecha) ── */
+  #serie-content-wrap {
+    display: flex !important;
+    gap: 0;
+    align-items: flex-start;
+    max-width: 100%;
+    padding: 0;
   }
 
-  /* Hero / Poster + Info en desktop — cinematic layout */
-  .serie-detail-hero {
-    display: flex;
-    gap: 48px;
-    padding: 60px 48px 48px;
-    align-items: flex-end;
-    max-width: 1400px;
-    margin: -120px auto 0;
+  /* Columna izquierda: Hero con info de la serie */
+  #serie-detail-section {
+    flex: 1;
+    min-width: 0;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+  }
+
+  /* ── Hero: Poster + Info en desktop — cinematic layout ── */
+  #serie-detail-section > div:not(#serie-detail-backdrop) {
+    /* The wrapper div with padding/margin-top */
+    padding: 60px 32px 32px !important;
+    margin-top: -140px !important;
     position: relative;
     z-index: 2;
     animation: pc-hero-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
 
-  .serie-detail-poster {
-    width: 360px;
-    min-width: 360px;
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.06);
-    flex-shrink: 0;
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+  /* Hero row: poster + info side by side */
+  #serie-detail-section > div > div[style*="display: flex"][style*="align-items: flex-end"] {
+    display: flex !important;
+    gap: 32px !important;
+    align-items: flex-end !important;
+    margin-bottom: 20px !important;
   }
-  .serie-detail-poster:hover {
+
+  /* Poster */
+  #serie-detail-poster {
+    width: 280px !important;
+    min-width: 280px !important;
+    height: 390px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.06);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+    border: none !important;
+  }
+  #serie-detail-poster:hover {
     transform: translateY(-4px) scale(1.02);
     box-shadow: 0 32px 100px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255,255,255,0.1);
   }
 
-  .serie-detail-poster img {
-    width: 100%;
-    display: block;
-    border-radius: 18px;
+  /* Info column next to poster */
+  #serie-detail-section > div > div > div[style*="flex: 1"] {
+    padding-bottom: 8px !important;
   }
 
-  .serie-detail-info {
-    flex: 1;
-    min-width: 0;
-    padding-bottom: 8px;
-  }
-
-  .serie-detail-info h1 {
-    font-size: 44px;
-    font-weight: 900;
-    line-height: 1.1;
-    margin-bottom: 14px;
-    color: #fff;
+  /* Title */
+  #serie-detail-title {
+    font-size: 36px !important;
+    font-weight: 900 !important;
+    line-height: 1.1 !important;
+    margin-bottom: 12px !important;
     letter-spacing: -0.5px;
     text-shadow: 0 2px 20px rgba(0,0,0,0.3);
     background: linear-gradient(135deg, #fff 40%, rgba(0,230,118,0.7) 100%);
@@ -1631,174 +1685,158 @@ body {
     background-clip: text;
   }
 
-  .serie-detail-meta {
+  /* Genres */
+  #serie-detail-genres {
+    font-size: 13px !important;
+    line-height: 1.6 !important;
+  }
+
+  /* Actions row (play button) */
+  #serie-detail-section > div > div[style*="display: flex"][style*="gap: 10px"] {
+    margin-bottom: 20px !important;
+  }
+
+  /* Meta stats row */
+  #serie-detail-meta {
+    padding: 16px 0 !important;
+    margin-top: 8px !important;
+    gap: 16px !important;
+  }
+
+  /* ── Columna derecha: Episodios en sidebar scrollable ── */
+  #embedded-episodes-section {
+    width: 420px;
+    min-width: 420px;
+    max-width: 420px;
+    padding: 24px 24px 24px 0;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    max-height: 100vh;
+    overflow-y: auto;
     display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
-    margin-bottom: 18px;
+    flex-direction: column;
   }
 
-  .serie-detail-meta-item {
-    font-size: 13px;
-    font-weight: 600;
-    color: rgba(255,255,255,0.7);
-    padding: 5px 14px;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
-    backdrop-filter: blur(4px);
+  /* Scrollbar para la sidebar */
+  #embedded-episodes-section::-webkit-scrollbar {
+    width: 4px;
+  }
+  #embedded-episodes-section::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  #embedded-episodes-section::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
   }
 
-  .serie-detail-meta-item.accent {
-    color: var(--accent);
-    background: rgba(0, 230, 118, 0.15);
+  /* Tabs bar en sidebar */
+  #episodes-tabs-bar {
+    width: 100%;
+    margin: 0 0 4px;
+    padding: 0 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    flex-shrink: 0;
   }
 
-  .serie-detail-synopsis {
-    font-size: 16px;
-    line-height: 1.8;
-    color: rgba(255,255,255,0.65);
-    max-width: 720px;
-    margin-bottom: 28px;
-    text-shadow: 0 1px 8px rgba(0,0,0,0.2);
+  /* Header de temporada y ordenar */
+  .episodes-section-header {
+    width: 100%;
+    margin: 0 0 8px;
+    padding: 8px 0 !important;
+    flex-shrink: 0;
   }
 
-  .serie-detail-actions {
-    display: flex;
-    gap: 14px;
-    margin-bottom: 28px;
-  }
-
-  .serie-detail-actions .play-btn {
-    max-width: 240px;
-  }
-
-  .serie-detail-actions .continue-btn {
-    max-width: 400px;
-  }
-
-  /* Info adicional en columnas */
-  .serie-detail-extras {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 14px;
-    margin-top: 20px;
-  }
-
-  .serie-detail-extra-item {
-    padding: 14px 18px;
-    background: rgba(255, 255, 255, 0.04);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    transition: background 0.25s ease, border-color 0.25s ease;
-  }
-  .serie-detail-extra-item:hover {
-    background: rgba(255, 255, 255, 0.07);
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-
-  .serie-detail-extra-item-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
-  }
-
-  .serie-detail-extra-item-value {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
-  }
-
-  /* ── Episodios en desktop: Grid de 2 columnas ── */
+  /* Lista de episodios en scroll */
   .episodes-list {
-    padding: 20px 48px 48px;
-    max-width: 1400px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+  }
+
+  /* Scrollbar personalizada para la lista de episodios */
+  .episodes-list::-webkit-scrollbar {
+    width: 3px;
+  }
+  .episodes-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .episodes-list::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
   }
 
   .ep-card-compact {
-    padding: 16px 20px;
-    gap: 18px;
-    border-radius: 14px;
+    padding: 10px 14px;
+    gap: 12px;
+    border-radius: 10px;
     background: rgba(255,255,255,0.02);
     border: 1px solid rgba(255,255,255,0.04);
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-                box-shadow 0.3s ease,
-                background 0.25s ease,
-                border-color 0.25s ease;
+    transition: transform 0.2s ease,
+                box-shadow 0.2s ease,
+                background 0.2s ease,
+                border-color 0.2s ease;
     cursor: pointer;
+    flex-shrink: 0;
   }
   .ep-card-compact:hover {
-    transform: translateY(-3px) scale(1.01);
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+    transform: translateX(4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     background: rgba(255,255,255,0.04);
     border-color: rgba(255,255,255,0.08);
   }
   .ep-card-compact:active {
-    transform: translateY(-1px) scale(0.99);
+    transform: translateX(2px) scale(0.99);
   }
 
   .ep-compact-thumb {
-    width: 200px;
-    min-width: 200px;
-    height: 118px;
-    border-radius: 10px;
+    width: 120px;
+    min-width: 120px;
+    height: 70px;
+    border-radius: 8px;
     overflow: hidden;
-    transition: transform 0.3s ease;
+    transition: transform 0.2s ease;
   }
   .ep-card-compact:hover .ep-compact-thumb {
     transform: scale(1.03);
   }
 
   .ep-compact-title {
-    font-size: 16px;
+    font-size: 13px;
     font-weight: 700;
   }
 
   .ep-compact-synopsis {
-    font-size: 13px;
-    -webkit-line-clamp: 2;
-    line-height: 1.5;
+    font-size: 11px;
+    -webkit-line-clamp: 1;
+    line-height: 1.4;
   }
 
   .ep-compact-num {
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 700;
     color: var(--accent);
     background: rgba(0,230,118,0.1);
-    padding: 2px 10px;
-    border-radius: 6px;
+    padding: 2px 7px;
+    border-radius: 4px;
   }
 
   .ep-compact-duration {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text3);
   }
 
-  /* Season dropdown en desktop */
+  /* Season dropdown en desktop sidebar */
   .season-dropdown {
-    max-width: 400px;
-    margin: 0 48px 16px;
-  }
-
-  /* Season tabs / header area */
-  .episodes-section-header {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 16px 48px 12px !important;
-  }
-
-  /* Tabs bar */
-  #episodes-tabs-bar {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 48px !important;
+    max-width: 240px;
+    margin: 0;
   }
 
   /* ── Smart Play Button en desktop ── */
