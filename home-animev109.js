@@ -769,6 +769,7 @@
         });
 
         renderHomeFavs();
+        renderContinueWatching();
     }
 
 
@@ -917,6 +918,122 @@
             return;
         }
         container.innerHTML = favItems.map(d => cardHTML(d, true)).join('');
+    }
+
+    // ── Continuar Viendo ─────────────────────────────────────
+    function renderContinueWatching() {
+        const section = document.getElementById('cw-section');
+        const track = document.getElementById('cw-track');
+        if (!section || !track) return;
+
+        // Collect all CW metadata from localStorage
+        const items = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith('wa_cw_meta_')) {
+                try {
+                    const meta = JSON.parse(localStorage.getItem(k));
+                    if (meta && meta.serieId && meta.progress > 0 && meta.progress < 95) {
+                        items.push(meta);
+                    }
+                } catch (e) {}
+            }
+        }
+
+        // Sort by most recently updated
+        items.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+
+        if (!items.length) {
+            section.style.display = 'none';
+            return;
+        }
+
+        section.style.display = '';
+        track.innerHTML = items.map((meta, idx) => {
+            const poster = meta.poster || '';
+            const timeLeft = meta.duration && meta.currentTime
+                ? fmtTimeCW(meta.duration - meta.currentTime)
+                : '';
+            const epLabel = meta.epType === 'movie' ? 'Película' : ('Ep. ' + meta.epNum);
+            const title = meta.serieTitle || 'Sin título';
+
+            return `<div class="cw-card" data-idx="${idx}" data-serieid="${meta.serieId}" data-url="${meta.serieUrl || ''}" data-resumekey="${meta.resumeKey || ''}" style="animation-delay:${idx * 60}ms">
+                <div class="cw-thumb">
+                    <div class="cw-thumb-bg lazy-bg" data-bg="url('${poster}')" style="width:100%;height:100%;background-size:cover;background-position:center"></div>
+                    <div class="cw-thumb-overlay"></div>
+                    <button class="cw-play-btn" aria-label="Reproducir">
+                        <svg fill="currentColor" viewBox="0 0 24 24" width="20" height="20"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    </button>
+                    <button class="cw-remove-btn" aria-label="Eliminar de continuar viendo">
+                        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                    <div class="cw-progress-bar"><div class="cw-progress-fill" style="width:${meta.progress}%"></div></div>
+                </div>
+                <div class="cw-info">
+                    <div class="cw-title">${title}</div>
+                    <div class="cw-sub">${epLabel}${meta.epTitle ? ' · ' + meta.epTitle : ''}</div>
+                    ${timeLeft ? `<div class="cw-time-left">${timeLeft} restantes</div>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+
+        // Lazy load backgrounds
+        requestAnimationFrame(() => {
+            track.querySelectorAll('.lazy-bg').forEach(el => {
+                const bg = el.dataset.bg;
+                if (bg) el.style.backgroundImage = bg;
+            });
+        });
+
+        // Click handler
+        track.onclick = (e) => {
+            const card = e.target.closest('.cw-card');
+            const removeBtn = e.target.closest('.cw-remove-btn');
+            const playBtn = e.target.closest('.cw-play-btn');
+
+            if (!card) return;
+
+            const serieId = card.dataset.serieid;
+            const url = card.dataset.url;
+            const resumeKey = card.dataset.resumekey;
+
+            // Remove button
+            if (removeBtn) {
+                e.stopPropagation();
+                const metaKey = 'wa_cw_meta_' + serieId;
+                localStorage.removeItem(metaKey);
+                if (resumeKey) localStorage.removeItem(resumeKey);
+                card.style.transition = 'transform 0.2s, opacity 0.2s';
+                card.style.transform = 'scale(0.9)';
+                card.style.opacity = '0';
+                setTimeout(() => {
+                    renderContinueWatching();
+                }, 250);
+                return;
+            }
+
+            // Play button - navigate to series URL
+            if (playBtn) {
+                e.stopPropagation();
+                if (url) location.href = url;
+                return;
+            }
+
+            // Card click - navigate to series
+            if (url) location.href = url;
+        };
+    }
+
+    function fmtTimeCW(seconds) {
+        if (!seconds || seconds < 0) return '';
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        if (m >= 60) {
+            const h = Math.floor(m / 60);
+            const rm = m % 60;
+            return h + 'h ' + rm + 'm';
+        }
+        return m + 'm ' + s + 's';
     }
 
     // SCROLL INFINITO MEJORADO PARA RENDERINCHUNKS
