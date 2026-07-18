@@ -573,17 +573,25 @@ function renderTabs() {
         ? 'display:flex;align-items:center;justify-content:center'
         : '';
 
-    // Botón selector de temporada
+    // Botón selector de temporada (solo el trigger, el modal va en document.body)
     container.innerHTML = `
         <button id="season-modal-trigger" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:7px 13px;color:#f0f0f0;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;max-width:100%;-webkit-tap-highlight-color:transparent">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
           <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${currentLabel}</span>
           <span style="color:#888899;font-size:11px;flex-shrink:0">(${epCount} ep)</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-left:2px"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
+        </button>`;
 
-        <!-- Modal overlay -->
-        <div id="season-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);${overlayAlignStyle}" role="dialog" aria-modal="true" aria-label="Seleccionar temporada">
+    // Crear el modal overlay en document.body para evitar problemas de stacking context
+    let overlay = document.getElementById('season-modal-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'season-modal-overlay';
+        overlay.style.cssText = `display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);${overlayAlignStyle}`;
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-label', 'Seleccionar temporada');
+        overlay.innerHTML = `
           <div id="season-modal-box" style="${boxBottomStyle}">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0">
               <span style="font-size:15px;font-weight:800;color:#fff">Temporadas</span>
@@ -592,8 +600,12 @@ function renderTabs() {
               </button>
             </div>
             <div id="season-modal-list" style="overflow-y:auto;padding:8px 0"></div>
-          </div>
-        </div>`;
+          </div>`;
+        document.body.appendChild(overlay);
+    } else {
+        // Si ya existe, actualizar estilo de alineación
+        overlay.style.cssText = `display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);${overlayAlignStyle}`;
+    }
 
     // Rellenar lista de temporadas
     const modalList = document.getElementById('season-modal-list');
@@ -611,7 +623,6 @@ function renderTabs() {
 
     // Lógica del modal
     const trigger = document.getElementById('season-modal-trigger');
-    const overlay = document.getElementById('season-modal-overlay');
     const box     = document.getElementById('season-modal-box');
     const closeBtn= document.getElementById('season-modal-close');
 
@@ -642,7 +653,7 @@ function renderTabs() {
     if (box) box.addEventListener('click', e => e.stopPropagation());
 
     // Opciones de temporada
-    container.querySelectorAll('.season-option-modal').forEach(btn => {
+    overlay.querySelectorAll('.season-option-modal').forEach(btn => {
         btn.addEventListener('click', () => {
             const idx = parseInt(btn.dataset.idx, 10);
             activeSeason = idx;
@@ -3190,30 +3201,9 @@ if (isInitMovie) {
         updateSmartPlayLabel();
     }
 
-    // ── Inicialización Auto-Watched (siempre activo para series) ──────────
-    if (!window._serieDetailShown) {
-    (function () {
-        const map = getWatchedMap();
-        let highestS = -1;
-        let highestE = -1;
-
-        for (let s = SERIE.seasons.length - 1; s >= 0; s--) {
-            const eps = SERIE.seasons[s].episodes;
-            for (let i = eps.length - 1; i >= 0; i--) {
-                if (isWatched(map, s, eps[i].num)) {
-                    highestS = s;
-                    highestE = eps[i].num;
-                    break;
-                }
-            }
-            if (highestS !== -1) break;
-        }
-
-        if (highestS !== -1 && highestE !== -1) {
-            setTimeout(() => playEpisode(highestS, highestE), 150);
-        }
-    })();
-    } // end if (!window._serieDetailShown)
+    // ── Inicialización Auto-Watched eliminada ─────────────────────────────
+    // Se eliminó el auto-play al entrar para que el usuario pueda navegar
+    // los episodios sin que se abra el reproductor automáticamente.
 }
 
 
