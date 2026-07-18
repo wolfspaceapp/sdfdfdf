@@ -556,6 +556,246 @@ function renderTabs() {
     });
 }
 
+// ── Sistema de Tabs: Episodios / Recomendados ────────────
+function initRecommendedTab() {
+    const tabsBar = document.getElementById('episodes-tabs-bar');
+    if (!tabsBar) return;
+
+    const tabBtns = tabsBar.querySelectorAll('.ep-tab-btn');
+    const episodesList = document.getElementById('episodes-list');
+    const recommendedList = document.getElementById('recommended-list');
+    const sectionHeader = document.querySelector('.episodes-section-header');
+
+    if (!tabBtns.length || !episodesList || !recommendedList) return;
+
+    // Limpiar placeholder de carga
+    recommendedList.innerHTML = '';
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tab = this.dataset.tab;
+
+            // Actualizar estilos de tabs
+            tabBtns.forEach(b => {
+                b.style.color = '#888899';
+                b.style.borderBottomColor = 'transparent';
+                b.style.fontWeight = '600';
+                b.classList.remove('active');
+            });
+            this.style.color = '#00E676';
+            this.style.borderBottomColor = '#00E676';
+            this.style.fontWeight = '700';
+            this.classList.add('active');
+
+            if (tab === 'episodes') {
+                episodesList.style.display = '';
+                recommendedList.style.display = 'none';
+                if (sectionHeader) sectionHeader.style.display = '';
+            } else if (tab === 'recommended') {
+                episodesList.style.display = 'none';
+                recommendedList.style.display = 'block';
+                if (sectionHeader) sectionHeader.style.display = 'none';
+
+                // Cargar recomendados si no se han cargado aún
+                if (!recommendedList.dataset.loaded) {
+                    loadRecommended();
+                }
+            }
+        });
+    });
+}
+
+// ── Encontrar animes similares basado en géneros/tags ────
+function findSimilarAnimes(currentSerie, maxResults = 20) {
+    const allData = window.DATA || [];
+    if (!allData.length) return [];
+
+    const currentTags = (currentSerie.tags || []).map(t => t.trim().toLowerCase());
+    const currentTitle = (currentSerie.title || '').toLowerCase();
+
+    // Si no hay tags, usar categoría
+    if (!currentTags.length && currentSerie.category) {
+        currentSerie.category.split(/,\s*/).forEach(c => {
+            const t = c.trim().toLowerCase();
+            if (t && !currentTags.includes(t)) currentTags.push(t);
+        });
+    }
+
+    // Excluir la serie actual y calcular puntuación de similitud
+    const scored = [];
+
+    allData.forEach(item => {
+        // Saltar la serie actual
+        if (String(item.id) === String(currentSerie.id)) return;
+        if ((item.title || '').toLowerCase() === currentTitle) return;
+        if ((item.url || '') === (currentSerie.url || '')) return;
+
+        const itemTags = [];
+        if (item.tags) {
+            if (Array.isArray(item.tags)) {
+                item.tags.forEach(t => itemTags.push(t.trim().toLowerCase()));
+            } else if (typeof item.tags === 'string') {
+                item.tags.split(/,\s*/).forEach(t => itemTags.push(t.trim().toLowerCase()));
+            }
+        }
+        if (item.category) {
+            item.category.split(/,\s*/).forEach(c => {
+                const t = c.trim().toLowerCase();
+                if (t && !itemTags.includes(t)) itemTags.push(t);
+            });
+        }
+        if (item.genres) {
+            if (Array.isArray(item.genres)) {
+                item.genres.forEach(g => itemTags.push(g.trim().toLowerCase()));
+            } else if (typeof item.genres === 'string') {
+                item.genres.split(/,\s*/).forEach(g => itemTags.push(g.trim().toLowerCase()));
+            }
+        }
+
+        // Calcular puntuación: cuantos tags coinciden
+        let score = 0;
+        const matchedTags = [];
+        currentTags.forEach(tag => {
+            // Ignorar tags genéricos como "H", años, etc.
+            if (tag === 'h' || /^\d{4}$/.test(tag)) return;
+            if (itemTags.includes(tag)) {
+                score++;
+                matchedTags.push(tag);
+            }
+        });
+
+        // Bonus si comparte el mismo status
+        if (currentSerie.status && item.status && item.status === currentSerie.status) {
+            score += 0.5;
+        }
+
+        // Bonus si es del mismo tipo (serie/película)
+        if (currentSerie.type && item.type && item.type === currentSerie.type) {
+            score += 0.3;
+        }
+
+        if (score > 0) {
+            scored.push({
+                item,
+                score,
+                matchCount: matchedTags.length,
+                totalTags: currentTags.length
+            });
+        }
+    });
+
+    // Ordenar por puntuación (mayor primero), luego por matchCount
+    scored.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return b.matchCount - a.matchCount;
+    });
+
+    return scored.slice(0, maxResults).map(s => s.item);
+}
+
+// ── Renderizar tarjetas de recomendados ──────────────────
+function renderRecommendedCards(items) {
+    const container = document.getElementById('recommended-list');
+    if (!container) return;
+
+    if (!items || !items.length) {
+        container.innerHTML = `
+            <div class="rec-empty">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 12px;opacity:0.4">
+                    <circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+                </svg>
+                <div>No se encontraron recomendados</div>
+            </div>`;
+        return;
+    }
+
+    const grid = document.createElement('div');
+    grid.className = 'recommended-grid';
+
+    items.forEach((item, index) => {
+        const poster = item.poster || item.image || '';
+        const posterStyle = poster
+            ? `background-image:url('${poster}');background-size:cover;background-position:center`
+            : 'background:linear-gradient(135deg,#0a1628,#001a0d)';
+        const status = item.status || '';
+        const episodes = item.episodes || '';
+        const year = item.date ? item.date.slice(0, 4) : (item.year || '');
+
+        // Extraer tags/géneros para mostrar (máximo 3)
+        let genreTags = [];
+        if (item.tags) {
+            if (Array.isArray(item.tags)) genreTags = item.tags.slice(0, 3);
+            else if (typeof item.tags === 'string') genreTags = item.tags.split(/,\s*/).slice(0, 3);
+        }
+        if (!genreTags.length && item.category) {
+            genreTags = item.category.split(/,\s*/).slice(0, 3);
+        }
+        // Filtrar tags genéricos
+        genreTags = genreTags.filter(t => !/^\d{4}$/.test(t.trim()) && t.trim().toLowerCase() !== 'h');
+
+        const card = document.createElement('div');
+        card.className = 'rec-card';
+        card.style.animationDelay = `${index * 60}ms`;
+        card.innerHTML = `
+            <div class="rec-card-img" style="${posterStyle}">
+                ${status ? `<span class="rec-card-status">${status}</span>` : ''}
+            </div>
+            <div class="rec-card-body">
+                <div class="rec-card-title">${item.title || ''}</div>
+                <div class="rec-card-meta">
+                    ${episodes ? `<span class="rec-card-pill">${episodes} eps</span>` : ''}
+                    ${year ? `<span class="rec-card-pill">${year}</span>` : ''}
+                </div>
+                ${genreTags.length ? `<div class="rec-card-genres">${genreTags.map(t => `<span class="rec-card-genre-tag">${t.trim()}</span>`).join('')}</div>` : ''}
+            </div>
+        `;
+
+        // Navegar al hacer click
+        card.addEventListener('click', function() {
+            const url = item.url || (item.id ? 'go:' + item.id : '');
+            if (url) {
+                // Si es URL go:, buscar en DATA y navegar
+                if (url.startsWith('go:')) {
+                    const targetId = url.replace('go:', '');
+                    const target = (window.DATA || []).find(d => String(d.id) === targetId);
+                    if (target && target.url) {
+                        location.href = target.url;
+                        return;
+                    }
+                }
+                location.href = url;
+            }
+        });
+
+        grid.appendChild(card);
+    });
+
+    container.innerHTML = '';
+    container.appendChild(grid);
+    container.dataset.loaded = '1';
+}
+
+// ── Cargar recomendados ──────────────────────────────────
+function loadRecommended() {
+    const container = document.getElementById('recommended-list');
+    if (!container) return;
+
+    // Mostrar estado de carga
+    container.innerHTML = `
+        <div class="rec-loading">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 12px;opacity:0.4">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+            <div>Buscando recomendados...</div>
+        </div>`;
+
+    // Usar setTimeout para permitir que el DOM se actualice con el estado de carga
+    setTimeout(() => {
+        const similar = findSimilarAnimes(SERIE);
+        renderRecommendedCards(similar);
+    }, 100);
+}
+
 // ── Helper: format duration seconds → "Xm" or "Xh Ym" ────
 function fmtDuration(raw) {
     if (!raw) return '';
@@ -1145,33 +1385,18 @@ function openPicker(type) {
 
     const overlay = document.createElement("div");
     overlay.id = "vp-custom-picker";
-    overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(5px);z-index:9999;display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity 0.25s ease";
-    
-    const isMobile = window.innerWidth <= 768;
-    const sheetStyles = isMobile 
-        ? "background:#141414;width:100%;border-radius:24px 24px 0 0;padding:24px 20px;border-top:1px solid rgba(255,255,255,0.08);transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);max-height:80vh;display:flex;flex-direction:column"
-        : "background:#141414;width:100%;max-width:400px;border-radius:20px;padding:24px;border:1px solid rgba(255,255,255,0.08);transform:scale(0.95);opacity:0;transition:all 0.25s cubic-bezier(0.34, 1.2, 0.64, 1);margin:auto;max-height:85vh;display:flex;flex-direction:column";
-
-    const sheet = document.createElement("div");
-    sheet.style.cssText = sheetStyles;
     
     const title = isLang ? "Seleccionar Idioma" : "Seleccionar Servidor";
     
     let html = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-shrink:0">
-      <h3 style="margin:0;font-size:18px;font-weight:700;color:#fff">${title}</h3>
-      <button id="vp-picker-close" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background 0.2s">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-      </button>
-    </div>
-    <div style="overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px" id="vp-picker-list">
+      <div>
+        <h3>${title}</h3>
+        <div id="vp-picker-list">
     `;
 
     items.forEach(it => {
         const isSelected = it.idx === current;
-        const bg = isSelected ? "rgba(0,230,118,0.1)" : "rgba(255,255,255,0.04)";
-        const border = isSelected ? "1px solid rgba(0,230,118,0.3)" : "1px solid transparent";
-        const textColor = isSelected ? "#00e676" : "#fff";
+        const activeClass = isSelected ? ' active' : '';
         
         let extraBadge = "";
         if (it.extra) {
@@ -1185,37 +1410,32 @@ function openPicker(type) {
         }
 
         html += `
-        <button class="vp-picker-opt" data-idx="${it.idx}" style="background:${bg};border:${border};color:${textColor};padding:14px 16px;border-radius:14px;display:flex;align-items:center;cursor:pointer;text-align:left;font-family:inherit;font-size:15px;font-weight:600;transition:all 0.2s;width:100%">
+        <button class="vp-picker-opt${activeClass}" data-idx="${it.idx}">
           <span style="flex:1">${it.label}</span>
           ${extraBadge}
         </button>
         `;
     });
 
-    html += `</div>`;
-    sheet.innerHTML = html;
-    overlay.appendChild(sheet);
+    html += `</div></div>`;
+    overlay.innerHTML = html;
     document.body.appendChild(overlay);
 
-    requestAnimationFrame(() => {
-        overlay.style.opacity = "1";
-        if (isMobile) {
-            sheet.style.transform = "translateY(0)";
-        } else {
-            sheet.style.transform = "scale(1)";
-            sheet.style.opacity = "1";
-        }
-    });
+    requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('show')));
 
     function closePicker() {
-        overlay.style.opacity = "0";
-        if (isMobile) {
-            sheet.style.transform = "translateY(100%)";
-        } else {
-            sheet.style.transform = "scale(0.95)";
-            sheet.style.opacity = "0";
-        }
+        overlay.classList.remove('show');
         setTimeout(() => overlay.remove(), 300);
+    }
+
+    // Add close button to h3
+    const h3 = overlay.querySelector('h3');
+    if (h3) {
+        const closeBtn = document.createElement('button');
+        closeBtn.id = 'vp-picker-close';
+        closeBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+        closeBtn.style.cssText = 'margin-left:auto;background:rgba(255,255,255,0.05);border:none;color:rgba(255,255,255,0.4);width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background 0.2s,transform 0.15s;padding:0';
+        h3.appendChild(closeBtn);
     }
 
     document.getElementById("vp-picker-close").addEventListener("click", closePicker);
@@ -1224,8 +1444,6 @@ function openPicker(type) {
     });
 
     overlay.querySelectorAll(".vp-picker-opt").forEach(btn => {
-        // Removido: hover effects
-        
         btn.addEventListener("click", () => {
             const idx = +btn.dataset.idx;
             if (isLang) {
@@ -1670,8 +1888,8 @@ function handleAutoplayNext() {
 
         fsOverlay.innerHTML = `
             ${bgHtml}
-            <div style="position:relative;z-index:2;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;padding:20px;box-sizing:border-box;">
-                <div class="fs-ep-img" style="border-radius:12px;overflow:hidden;margin-bottom:20px;box-shadow:0 10px 30px rgba(0,0,0,0.6);background:#111;position:relative;z-index:2;">
+            <div class="autoplay-fs-content">
+                <div class="fs-ep-img" style="margin-bottom:20px;">
                     ${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;">` : ''}
                     <div style="position:absolute;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1679,10 +1897,10 @@ function handleAutoplayNext() {
                         </svg>
                     </div>
                 </div>
-                <div style="font-size:14px;color:var(--accent);font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;">Película Finalizada</div>
-                <div style="font-size:28px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:12px;max-width:600px;">${SERIE.title || ''}</div>
-                <div style="font-size:15px;color:#aaa;margin-bottom:24px;max-width:500px;">¡Esperamos que la hayas disfrutado!</div>
-                <button id="fs-back-movie-btn" style="background:var(--accent);color:#000;border:none;padding:12px 32px;border-radius:24px;font-size:15px;font-weight:800;cursor:pointer;transition:transform 0.2s;">Volver</button>
+                <div class="fs-next-label" style="margin-bottom:8px;">Película Finalizada</div>
+                <div class="fs-title" style="margin-bottom:12px;">${SERIE.title || ''}</div>
+                <div class="fs-subtitle" style="margin-bottom:24px;">¡Esperamos que la hayas disfrutado!</div>
+                <button id="fs-back-movie-btn">Volver</button>
             </div>
         `;
         if (activeFsElement) activeFsElement.appendChild(fsOverlay);
@@ -1744,8 +1962,8 @@ function handleAutoplayNext() {
             fsOverlay = document.createElement('div');
             fsOverlay.className = 'autoplay-fs-overlay';
             const epImg = nextEp.thumb || nextEp.img || SERIE.poster || SERIE.image || '';
-            const epImgHtml = epImg ? `<div class="fs-ep-img" style="border-radius:12px; overflow:hidden; margin-bottom:10px; box-shadow:0 10px 30px rgba(0,0,0,0.6); background:#111; position:relative; z-index:2;"><img src="${epImg}" style="width:100%; height:100%; object-fit:cover;"></div>` : '';
-            fsOverlay.style.background = 'transparent'; // Evitar fondo negro que tape todo
+            const epImgHtml = epImg ? `<div class="fs-ep-img"><img src="${epImg}" style="width:100%; height:100%; object-fit:cover;"></div>` : '';
+            fsOverlay.style.background = 'transparent';
             const bgHtml = epImg ? `<div style="position:absolute; inset:-10%; background-image:url('${epImg}'); background-size:cover; background-position:center; filter:blur(12px); opacity:0.6; z-index:1; pointer-events:none;"></div><div style="position:absolute; inset:0; background:radial-gradient(circle, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%); z-index:1; pointer-events:none;"></div><div style="position:absolute; inset:0; background:#000; z-index:0; opacity:0.85; pointer-events:none;"></div>` : '<div style="position:absolute; inset:0; background:#000; z-index:0; pointer-events:none;"></div>';
             
             const nextSeasonObj = SERIE.seasons[nextSeasonIdx];
@@ -1753,12 +1971,12 @@ function handleAutoplayNext() {
 
             fsOverlay.innerHTML = `
                 ${bgHtml}
-                <div class="autoplay-fs-content" style="position:relative; z-index:2;">
+                <div class="autoplay-fs-content">
                     ${epImgHtml}
-                    <div class="fs-next-label" style="font-size:13px; color:var(--accent); font-weight:800; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">A continuación</div>
-                    <div class="fs-title" style="font-size:26px; font-weight:800; color:#fff; line-height:1.2; margin-bottom:6px; max-width:600px;">${SERIE.title || ''}</div>
-                    <div class="fs-subtitle" style="font-size:16px; color:#aaa; margin-bottom:24px; max-width:500px;">Episodio ${nextEp.num}${seasonLabel}${nextEp.title ? ` - ${nextEp.title}` : ''}</div>
-                    <div class="fs-text" style="margin-bottom:16px;">Iniciando en <span id="fs-countdown">5</span></div>
+                    <div class="fs-next-label">A continuación</div>
+                    <div class="fs-title">${SERIE.title || ''}</div>
+                    <div class="fs-subtitle">Episodio ${nextEp.num}${seasonLabel}${nextEp.title ? ` - ${nextEp.title}` : ''}</div>
+                    <div class="fs-text">Iniciando en <span id="fs-countdown">5</span></div>
                     <button id="fs-cancel-btn">Cancelar</button>
                 </div>
             `;
@@ -1772,7 +1990,6 @@ function handleAutoplayNext() {
         let countdown = 5;
         let span = null;
 
-        // Limpiar animaciones residuales de clicks anteriores de inmediato
         const nextBtnVisible = nextBtn && nextBtn.style.display !== 'none' && !nextBtn.disabled;
         if (nextBtnVisible) {
             nextBtn.classList.add('autoplay-loading');
@@ -1796,7 +2013,6 @@ function handleAutoplayNext() {
                 window._autoplayTimer = null;
                 if (fsOverlay) fsOverlay.remove();
                 
-                // Forzar reset agresivo del botón al terminar contador
                 if (nextBtn) {
                     nextBtn.classList.remove('autoplay-loading');
                     const spReset = nextBtn.querySelector('span');
@@ -1817,7 +2033,6 @@ function handleAutoplayNext() {
                     clearInterval(window._autoplayTimer);
                     window._autoplayTimer = null;
                     fsOverlay.remove();
-                    // Limpiar agresivamente el botón si se cancela manualmente el pop-up
                     if (nextBtn) {
                         nextBtn.classList.remove('autoplay-loading');
                         const spReset = nextBtn.querySelector('span');
@@ -1838,8 +2053,8 @@ function handleAutoplayNext() {
         
         fsOverlay.innerHTML = `
             ${bgHtml}
-            <div style="position:relative; z-index:2; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; padding:20px; box-sizing:border-box;">
-                <div class="fs-ep-img" style="border-radius:12px; overflow:hidden; margin-bottom:20px; box-shadow:0 10px 30px rgba(0,0,0,0.6); background:#111; position:relative; z-index:2;">
+            <div class="autoplay-fs-content">
+                <div class="fs-ep-img" style="margin-bottom:20px;">
                     <img src="${img}" style="width:100%; height:100%; object-fit:cover;">
                     <div style="position:absolute; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center;">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1847,10 +2062,10 @@ function handleAutoplayNext() {
                         </svg>
                     </div>
                 </div>
-                <div style="font-size:14px; color:var(--accent); font-weight:800; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px;">${label}</div>
-                <div style="font-size:28px; font-weight:900; color:#fff; line-height:1.2; margin-bottom:12px; max-width:600px;">${SERIE.title || ''}</div>
-                <div style="font-size:15px; color:#aaa; margin-bottom:24px; max-width:500px;">¡Esperamos que la hayas disfrutado!</div>
-                <button id="fs-close-final-btn" style="background:var(--accent); color:#000; border:none; padding:12px 32px; border-radius:24px; font-size:15px; font-weight:800; cursor:pointer; transition:transform 0.2s;">Cerrar reproductor</button>
+                <div class="fs-next-label" style="margin-bottom:8px;">${label}</div>
+                <div class="fs-title" style="margin-bottom:12px;">${SERIE.title || ''}</div>
+                <div class="fs-subtitle" style="margin-bottom:24px;">¡Esperamos que la hayas disfrutado!</div>
+                <button id="fs-close-final-btn">Cerrar reproductor</button>
             </div>
         `;
         activeFsElement.appendChild(fsOverlay);
@@ -2674,6 +2889,9 @@ if (isInitMovie) {
     renderTabs();
     renderEpisodes(true);
 
+    // Inicializar tabs de Episodios / Recomendados
+    initRecommendedTab();
+
     // Actualizar el label del Smart Play Button con el estado de progreso actual
     // Se llama siempre que la sección de detalles esté en el DOM
     if (document.getElementById('serie-detail-section')) {
@@ -3079,6 +3297,63 @@ document.addEventListener('webkitfullscreenchange', () => {
     }
     .ext-bri-presets button {
         padding:5px 8px;
+        font-size:10px;
+    }
+}
+
+/* Landscape muy estrecho */
+@media (orientation: landscape) and (max-height: 400px) {
+    #ext-brightness-overlay { padding:4px; align-items:flex-start; padding-top:8px; }
+    #ext-brightness-panel {
+        width:min(100%, calc(100% - 8px));
+        max-height:calc(100vh - 12px);
+        border-radius:10px;
+    }
+    .ext-bri-header {
+        padding:6px 10px 6px;
+    }
+    .ext-bri-header span { font-size:11px; }
+    .ext-bri-close { width:22px; height:22px; }
+    .ext-bri-close svg { width:13px; height:13px; }
+    .ext-bri-body {
+        padding:8px 10px 10px;
+        gap:8px;
+    }
+    .ext-bri-dial-wrap {
+        width:40%;
+        max-width:100px;
+        min-width:70px;
+    }
+    .ext-bri-presets {
+        width:calc(60% - 8px);
+        gap:3px;
+    }
+    .ext-bri-presets button {
+        padding:3px 6px;
+        font-size:9px;
+    }
+}
+
+/* Pantallas muy pequeñas (< 360px) */
+@media (max-width: 359px) {
+    #ext-brightness-panel {
+        width:calc(100% - 8px);
+        border-radius:14px;
+    }
+    .ext-bri-header {
+        padding:10px 12px 8px;
+    }
+    .ext-bri-header span { font-size:12px; }
+    .ext-bri-body {
+        padding:10px 10px 12px;
+        gap:10px;
+    }
+    .ext-bri-dial-wrap {
+        width:70%;
+        max-width:140px;
+    }
+    .ext-bri-presets button {
+        padding:4px 2px;
         font-size:10px;
     }
 }
