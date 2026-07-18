@@ -18,9 +18,10 @@
             const titleNoAccent = noAccent(title);
             const descNoAccent = noAccent(desc);
             const tagsNoAccent = noAccent(tagsText);
+            const catNoAccent = noAccent(cat);
             // También incluir palabras individuales del título para búsqueda parcial
             const titleWords = title.toLowerCase().split(/[\s,.-]+/).filter(w => w.length > 1).join(' ');
-            d._searchText = `${title} ${desc} ${tagsText} ${cat} ${titleNoAccent} ${descNoAccent} ${tagsNoAccent} ${titleWords}`.toLowerCase();
+            d._searchText = `${title} ${desc} ${tagsText} ${cat} ${titleNoAccent} ${descNoAccent} ${tagsNoAccent} ${catNoAccent} ${titleWords}`.toLowerCase();
         });
         window._searchCacheBuilt = true;
     }
@@ -134,34 +135,7 @@
     let _pendingCWDeleteId = null;
     let viewScrolls = {};
 
-    // Hybrid Lazy Load Persisted URL Cache
-    window.loadedImageCache = new Set();
-    try {
-        const stored = JSON.parse(localStorage.getItem('wolfanime_img_cache_v1') || '[]');
-        window.loadedImageCache = new Set(stored);
-    } catch (e) { }
-
-    function saveImageCache(url) {
-        if (!url || url === 'undefined' || url.includes('var(--')) return;
-        if (!window.loadedImageCache.has(url)) {
-            window.loadedImageCache.add(url);
-            try {
-                let arr = [...window.loadedImageCache];
-                if (arr.length > 300) {
-                    arr = arr.slice(arr.length - 300);
-                    window.loadedImageCache = new Set(arr);
-                }
-                localStorage.setItem('wolfanime_img_cache_v1', JSON.stringify(arr));
-            } catch (e) { }
-        }
-    }
-
     function getLazyBgAttrs(classes, bgStr) {
-        let match = (bgStr || '').match(/url\(['"]?([^'"\)]+)['"]?\)/);
-        let key = match ? match[1] : bgStr;
-        if (key && key !== 'undefined' && window.loadedImageCache.has(key)) {
-            return `class="${classes} loaded" style="background: ${bgStr} !important; animation: none !important;"`;
-        }
         return `class="${classes} lazy-bg" data-bg="${bgStr}"`;
     }
 
@@ -192,7 +166,6 @@
                 }
 
                 el.classList.add('loaded');
-                if (match && match[1]) saveImageCache(match[1]);
             };
             img.onload = applyBg;
             img.onerror = applyBg;
@@ -630,7 +603,7 @@
 
     function handleURLParams() {
         let p = getURLParams();
-        const hasRelevantParams = p.id || p.cat || p.q || p.view;
+        const hasRelevantParams = p.cat || p.q || p.view;
 
         if (!hasRelevantParams) {
             const saved = localStorage.getItem(APP_STATE_KEY);
@@ -642,10 +615,6 @@
             }
         }
 
-        if (p.id) {
-            openDetail(+p.id);
-            return true;
-        }
         if (p.cat) {
             state.catFilter = p.cat;
             renderCatLibrary(p.cat);
@@ -821,7 +790,6 @@
             const div = document.createElement('div');
             div.className = `slider-card ${layout}`;
             div.dataset.id = item.id;
-            div.onclick = () => openDetail(item.id);
             const statusColor = item.status === 'En emisión' ? '#00e676' : item.status === 'En pausa' ? '#ffb300' : '#aaa';
             const year = item.date ? item.date.substring(0, 4) : '';
             const bg = layout === 'horizontal' ? backdropBg(item) : posterBg(item);
@@ -1109,7 +1077,12 @@
 
     function renderCatLibrary(cat) {
         $('cat-library-title').textContent = cat === 'H' ? 'Contenido H' : cat;
-        const items = visibleDATA().filter(d => d.category === cat || (d.category && d.category.split(/,\s*/).map(c => c.trim()).includes(cat)));
+        const trimmedCat = cat.trim();
+        const items = visibleDATA().filter(d => {
+            if (!d.category) return false;
+            const cats = d.category.split(/,\s*/).map(c => c.trim());
+            return cats.includes(trimmedCat);
+        });
         if (items.length === 0) {
             $('cat-library-grid').innerHTML = `
       <div class="empty-state" style="grid-column:1/-1;padding:60px 20px;text-align:center">
@@ -1383,6 +1356,7 @@
         const item = DATA.find(d => d.id === id);
         if (item && item.url) location.href = item.url;
     }
+    window.openDetail = openDetail;
 
     // ── Modal Mi Lista ──────────────────────────────────────────
     let modalItemId = null;
