@@ -260,9 +260,36 @@ function updateSmartPlayLabel() {
     }
     const hasAnyProgress = hasProgressElsewhere || firstEpSaved > 5;
 
-    const svgPlay = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="flex-shrink:0"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+    // Detectar si el episodio actual coincide con el target (ya está reproduciendo)
+    const isCurrentlyPlaying = currentEpisode !== null &&
+        activeSeason === target.seasonIdx &&
+        currentEpisode.num === target.epNum;
 
-    if (hasAnyProgress) {
+    const svgPlay = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="flex-shrink:0"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+    const svgPause = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="flex-shrink:0"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+
+    if (isCurrentlyPlaying) {
+        // Mostrar "Reproduciendo" con estilo activo
+        const targetSeason = SERIE.seasons && SERIE.seasons[target.seasonIdx];
+        const seasonLabel = targetSeason && targetSeason.name ? targetSeason.name : `Temporada ${target.seasonIdx + 1}`;
+        btn.innerHTML = `<div class="spb-continue spb-playing">
+            <div class="spb-icon spb-icon-pulse">${svgPause}</div>
+            <div class="spb-body">
+                <div class="spb-top">
+                    <span class="spb-label spb-label-playing">Reproduciendo</span>
+                    <span class="spb-meta">${seasonLabel} &middot; Ep. ${target.epNum}</span>
+                </div>
+                <div class="spb-bottom">
+                    <span class="spb-time spb-time-playing">En vivo</span>
+                    <div class="spb-progress"><div class="spb-progress-fill spb-progress-fill-playing" style="width:100%"></div></div>
+                </div>
+            </div>
+            <div class="spb-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+        </div>`;
+        btn.setAttribute('aria-label', `Reproduciendo ${seasonLabel}, episodio ${target.epNum}`);
+    } else if (hasAnyProgress) {
         // Obtener datos del episodio target
         const targetSeason = SERIE.seasons && SERIE.seasons[target.seasonIdx];
         const targetEp = targetSeason && targetSeason.episodes && targetSeason.episodes.find(e => e.num === target.epNum);
@@ -549,7 +576,7 @@ function renderTabs() {
 
         <!-- Modal overlay -->
         <div id="season-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)" role="dialog" aria-modal="true" aria-label="Seleccionar temporada">
-          <div id="season-modal-box" style="position:absolute;bottom:0;left:0;right:0;background:#161b22;border-radius:20px 20px 0 0;padding:0;max-height:70vh;display:flex;flex-direction:column;overflow:hidden;transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1)">
+          <div id="season-modal-box" style="position:absolute;bottom:0;left:0;right:0;background:#000;border-radius:20px 20px 0 0;padding:0;max-height:70vh;display:flex;flex-direction:column;overflow:hidden;transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1)">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0">
               <span style="font-size:15px;font-weight:800;color:#fff">Temporadas</span>
               <button id="season-modal-close" style="background:rgba(255,255,255,0.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff">
@@ -968,7 +995,7 @@ function openSortModal() {
     overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity 0.2s';
     
     const sheet = document.createElement('div');
-    sheet.style.cssText = 'background:#161b22;width:100%;max-width:400px;border-radius:20px 20px 0 0;padding:20px 20px 28px;transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1);max-height:70vh;overflow-y:auto';
+    sheet.style.cssText = 'background:#000;width:100%;max-width:400px;border-radius:20px 20px 0 0;padding:20px 20px 28px;transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1);max-height:70vh;overflow-y:auto';
     
     const options = [
         { value: 'asc', label: 'Ascendente (1 → N)', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>' },
@@ -1132,6 +1159,7 @@ function playEpisode(seasonIdx, epNum, animate = false, isAutoAdvance = false) {
     activeSeason = seasonIdx;
     const eps = SERIE.seasons[seasonIdx].episodes;
     currentEpisode = eps.find(e => e.num === epNum);
+    updateSmartPlayLabel();
 
     if (!currentEpisode || !currentEpisode.langs) {
         alert('Este episodio no tiene servidores disponibles');
@@ -1383,6 +1411,7 @@ function closePlayer() {
 
     $('player-wrap').innerHTML = '';
     currentEpisode = null;
+    updateSmartPlayLabel();
     renderCount++; // Invalidar cualquier carga asíncrona en curso
 }
 
