@@ -1434,7 +1434,8 @@ function playEpisode(seasonIdx, epNum, animate = false, isAutoAdvance = false) {
     resumeToastShown = false;
 
     // Auto-update Home Slider meta
-    updateCWMetadata(0, 0);
+    // Use minimum progress of 1 so the home page CW slider doesn't filter it out (progress > 0 check)
+    updateCWMetadata(1, 100);
 
     // Cancelar autoplay pendiente
     if (window._autoplayTimer) {
@@ -1636,6 +1637,10 @@ function closePlayer() {
     currentEpisode = null;
     updateSmartPlayLabel();
     renderCount++; // Invalidar cualquier carga asíncrona en curso
+
+    // Re-render episodes list to sync watched switch visual state
+    // (episodes were hidden during playback, so DOM queries for switches returned null)
+    renderEpisodes(false);
 }
 
 function updateLabels() {
@@ -3217,7 +3222,6 @@ if (isInitMovie) {
 (function() {
     const favBtn = document.getElementById('btn-detail-fav');
     const mylistBtn = document.getElementById('btn-detail-mylist');
-    const favLabel = document.getElementById('btn-detail-fav-label');
     const mylistLabel = document.getElementById('btn-detail-mylist-label');
     
     if (!favBtn || !mylistBtn) return;
@@ -3268,8 +3272,14 @@ if (isInitMovie) {
         } catch(e) {}
     }
     
-    function toggleMyList(id) {
+    function openMyListModal(id) {
         try {
+            // If the home page's openMyListModal is available, use it
+            if (window.openMyListModal) {
+                window.openMyListModal(id);
+                return;
+            }
+            // Fallback: simple toggle
             let ws = JSON.parse(localStorage.getItem('wolfanime_watchstatus_v1') || '{}');
             if (ws[id]) {
                 delete ws[id];
@@ -3283,10 +3293,7 @@ if (isInitMovie) {
     
     function updateFavUI() {
         const active = isFav(serieId);
-        favBtn.style.background = active ? 'rgba(255, 70, 70, 0.15)' : 'rgba(255,255,255,0.06)';
-        favBtn.style.borderColor = active ? 'rgba(255, 70, 70, 0.3)' : 'rgba(255,255,255,0.12)';
-        favBtn.style.color = active ? '#ff4646' : '#fff';
-        favLabel.textContent = active ? 'En Favoritos' : 'Favoritos';
+        favBtn.classList.toggle('active', active);
         // Animate
         favBtn.style.transform = 'scale(0.92)';
         requestAnimationFrame(() => { favBtn.style.transform = 'scale(1)'; });
@@ -3304,7 +3311,7 @@ if (isInitMovie) {
     }
     
     favBtn.addEventListener('click', () => toggleFav(serieId));
-    mylistBtn.addEventListener('click', () => toggleMyList(serieId));
+    mylistBtn.addEventListener('click', () => openMyListModal(serieId));
     
     // Initial UI state
     updateFavUI();
