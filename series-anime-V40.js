@@ -220,9 +220,6 @@ function updateSmartPlayLabel() {
 
     const target = getSmartPlayTarget(SERIE, localStorage);
 
-    // Comprobar si existe progreso real para cualquier episodio:
-    //   a) el target no apunta al primer episodio de la primera temporada, o
-    //   b) hay tiempo guardado para el primer episodio (target es el 1º pero con progreso)
     const firstEp = (SERIE.seasons && SERIE.seasons.length > 0 && SERIE.seasons[0].episodes && SERIE.seasons[0].episodes.length > 0)
         ? SERIE.seasons[0].episodes[0]
         : { num: 1, langs: [] };
@@ -242,14 +239,29 @@ function updateSmartPlayLabel() {
     const svgPlay = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="flex-shrink:0"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
 
     if (hasAnyProgress) {
-        btn.innerHTML = svgPlay + `Continuar &middot; Ep ${target.epNum}`;
+        // Obtener el tiempo guardado del episodio target para mostrarlo
+        const targetSeason = SERIE.seasons && SERIE.seasons[target.seasonIdx];
+        const targetEp = targetSeason && targetSeason.episodes && targetSeason.episodes.find(e => e.num === target.epNum);
+        let timeStr = '';
+        if (targetEp && targetEp.langs && targetEp.langs[0]) {
+            const rKey = `wa_resume_${SERIE.id}_s${target.seasonIdx}_e${target.epNum}_${targetEp.langs[0].name}`;
+            const savedTime = parseInt(localStorage.getItem(rKey) || '0', 10);
+            if (savedTime > 5) {
+                const h = Math.floor(savedTime / 3600);
+                const m = Math.floor((savedTime % 3600) / 60);
+                const s = savedTime % 60;
+                timeStr = h > 0
+                    ? ` · ${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+                    : ` · ${m}:${String(s).padStart(2,'0')}`;
+            }
+        }
+        btn.innerHTML = svgPlay + `Continuar &middot; Ep ${target.epNum}${timeStr}`;
         btn.setAttribute('aria-label', `Continuar reproducción del episodio ${target.epNum}`);
     } else {
         btn.innerHTML = svgPlay + 'Reproducir';
         btn.setAttribute('aria-label', 'Reproducir primer episodio');
     }
 
-    // Asignar (o reasignar) el listener de clic usando onclick para evitar duplicados
     btn.onclick = function () {
         playEpisode(target.seasonIdx, target.epNum);
     };
@@ -455,29 +467,93 @@ class SeasonDropdown {
     }
 }
 
-// ── renderTabs ────────────────────────────────────────────
+// ── renderTabs: Season Selector via Modal ─────────────────
 function renderTabs() {
-    const tabs = $('embedded-seasons-container');
-    if (!tabs) return;
+    const container = $('embedded-seasons-container');
+    if (!container) return;
 
-    // Suprimir el dropdown si solo hay una temporada o si no hay temporadas
+    // Si solo hay 1 o 0 temporadas, mostrar solo el label
     if (!SERIE.seasons || SERIE.seasons.length <= 1) {
-        tabs.innerHTML = '';
+        const label = SERIE.seasons && SERIE.seasons[0]
+            ? (SERIE.seasons[0].label || `Temporada ${SERIE.seasons[0].num || 1}`)
+            : '';
+        container.innerHTML = label
+            ? `<div style="padding:0 16px 8px;font-size:12px;color:#888899;font-weight:600;text-transform:uppercase;letter-spacing:0.5px">${label}</div>`
+            : '';
         return;
     }
 
-    // Instanciar y renderizar el SeasonDropdown
-    const dropdown = new SeasonDropdown(
-        tabs,
-        SERIE.seasons,
-        activeSeason,
-        (newSeasonIdx) => {
-            activeSeason = newSeasonIdx;
+    const currentSeason = SERIE.seasons[activeSeason];
+    const currentLabel  = currentSeason ? (currentSeason.label || `Temporada ${currentSeason.num}`) : 'Temporada';
+    const epCount       = currentSeason && currentSeason.episodes ? currentSeason.episodes.length : 0;
+
+    // Botón selector de temporada
+    container.innerHTML = `
+        <button id="season-modal-trigger" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:7px 13px;color:#f0f0f0;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;max-width:100%;-webkit-tap-highlight-color:transparent">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${currentLabel}</span>
+          <span style="color:#888899;font-size:11px;flex-shrink:0">(${epCount} ep)</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-left:2px"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+
+        <!-- Modal overlay -->
+        <div id="season-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)" role="dialog" aria-modal="true" aria-label="Seleccionar temporada">
+          <div id="season-modal-box" style="position:absolute;bottom:0;left:0;right:0;background:#161b22;border-radius:20px 20px 0 0;padding:0;max-height:70vh;display:flex;flex-direction:column;overflow:hidden;transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1)">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0">
+              <span style="font-size:15px;font-weight:800;color:#fff">Temporadas</span>
+              <button id="season-modal-close" style="background:rgba(255,255,255,0.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <div id="season-modal-list" style="overflow-y:auto;padding:8px 0"></div>
+          </div>
+        </div>`;
+
+    // Rellenar lista de temporadas
+    const modalList = document.getElementById('season-modal-list');
+    if (modalList) {
+        modalList.innerHTML = SERIE.seasons.map((s, i) => {
+            const lbl = s.label || `Temporada ${s.num}`;
+            const eps = s.episodes ? s.episodes.length : 0;
+            const isActive = i === activeSeason;
+            return `<button class="season-option-modal" data-idx="${i}" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:13px 20px;background:${isActive ? 'rgba(0,230,118,0.08)' : 'none'};border:none;color:${isActive ? '#00E676' : '#e0e0e0'};font-size:14px;font-weight:${isActive ? '700' : '500'};cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent">
+              <span>${lbl}</span>
+              <span style="font-size:12px;color:${isActive ? '#00E676' : '#888899'};font-weight:600">${eps} ep${eps !== 1 ? 's' : ''}${isActive ? ' ✓' : ''}</span>
+            </button>`;
+        }).join('');
+    }
+
+    // Lógica del modal
+    const trigger = document.getElementById('season-modal-trigger');
+    const overlay = document.getElementById('season-modal-overlay');
+    const box     = document.getElementById('season-modal-box');
+    const closeBtn= document.getElementById('season-modal-close');
+
+    function openModal() {
+        overlay.style.display = 'block';
+        requestAnimationFrame(() => { box.style.transform = 'translateY(0)'; });
+        document.body.style.overflow = 'hidden';
+    }
+    function closeModal() {
+        box.style.transform = 'translateY(100%)';
+        setTimeout(() => { overlay.style.display = 'none'; }, 280);
+        document.body.style.overflow = '';
+    }
+
+    if (trigger) trigger.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (overlay) overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+
+    // Opciones de temporada
+    container.querySelectorAll('.season-option-modal').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const idx = parseInt(btn.dataset.idx, 10);
+            activeSeason = idx;
+            closeModal();
             renderTabs();
             renderEpisodes(true);
-        }
-    );
-    dropdown.render();
+        });
+    });
 }
 
 // ── Helper: format duration seconds → "Xm" or "Xh Ym" ────
@@ -514,18 +590,14 @@ function truncateSynopsis(text, maxLen) {
  * @returns {string} HTML string del card
  */
 function renderEpisodeCard(ep, seasonIdx, watchedMap, resumeData) {
-    // ── thumbnail: usar image URL o gradiente de fallback ─
     const thumbStyle = ep.thumb
         ? `background-image:url('${ep.thumb}')`
         : `background:linear-gradient(135deg,#0a1628,#001a0d)`;
 
-    // ── watched state ──────────────────────────────────────
     const watched = isWatched(watchedMap, seasonIdx, ep.num);
 
-    // ── progress calculation ───────────────────────────────
-    // Lee el tiempo guardado en localStorage para el primer idioma disponible.
-    // Si no hay duration no se puede calcular porcentaje.
     let progressPercent = 0;
+    let savedTimeDisplay = '';
     if (ep.langs && ep.langs.length > 0) {
         const langName = ep.langs[0].name;
         const rKey = `wa_resume_${SERIE.id}_s${seasonIdx}_e${ep.num}_${langName}`;
@@ -534,73 +606,62 @@ function renderEpisodeCard(ep, seasonIdx, watchedMap, resumeData) {
             const dur = parseInt(ep.duration, 10);
             if (dur > 0) progressPercent = Math.min(95, (savedTime / dur) * 100);
         }
+        if (savedTime > 5) {
+            const h = Math.floor(savedTime / 3600);
+            const m = Math.floor((savedTime % 3600) / 60);
+            const s = savedTime % 60;
+            savedTimeDisplay = h > 0
+                ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+                : `${m}:${String(s).padStart(2,'0')}`;
+        }
     }
     const hasProgress = progressPercent > 0 && progressPercent < 95;
 
-    // ── current-episode highlight ──────────────────────────
-    // Se aplica cuando este episodio coincide con el target del Smart Play Button
-    // (el último episodio con progreso pendiente < 95%).
     const isCurrentEpisode = resumeData != null
         && resumeData.seasonIdx === seasonIdx
         && resumeData.epNum === ep.num;
 
-    // ── title fallback: "Episodio X" si no hay título ─────
     const epTitle = ep.title || `Episodio ${ep.num}`;
+    const durationFmt = ep.duration ? fmtDuration(ep.duration) : '';
 
-    // ── optional metadata: omitir si no existe ────────────
-    const durationHTML = ep.duration
-        ? `<div class="ep-duration">${fmtDuration(ep.duration)}</div>`
-        : '';
-
-    // Synopsis truncada a 120 chars; omitir sección si no existe
-    const synopsisHTML = ep.synopsis
-        ? `<div class="ep-synopsis">${truncateSynopsis(ep.synopsis, 120)}</div>`
-        : '';
-
-    // ── card classes ───────────────────────────────────────
-    const cardClasses = ['ep-card'];
+    const cardClasses = ['ep-card', 'ep-card-compact'];
     if (watched)          cardClasses.push('watched');
     if (hasProgress)      cardClasses.push('in-progress');
     if (isCurrentEpisode) cardClasses.push('current-episode');
 
-    return `<div class="${cardClasses.join(' ')}" data-season="${seasonIdx}" data-episode="${ep.num}">
-  <div class="ep-thumb" role="img" aria-label="Miniatura episodio ${ep.num}">
-    <div class="ep-thumb-img" style="${thumbStyle}"></div>
-
-    <div class="ep-progress-bar"${hasProgress ? ` style="width:${progressPercent.toFixed(1)}%"` : ' style="width:0;display:none"'}></div>
-
-    <div class="ep-watched-badge"${watched ? '' : ' hidden'} aria-label="Episodio visto">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <circle cx="12" cy="12" r="10" fill="rgba(0,0,0,0.75)"/>
-        <path d="M9 12l2 2 4-4" stroke="#00e676" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
+    return `<div class="${cardClasses.join(' ')}" data-season="${seasonIdx}" data-episode="${ep.num}" style="display:flex;align-items:center;gap:0;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent${isCurrentEpisode ? ';background:rgba(0,230,118,0.05)' : ''}">
+  <!-- Info izquierda -->
+  <div style="flex:1;min-width:0;padding-right:12px">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+      <span style="font-size:10px;font-weight:700;color:#888899;text-transform:uppercase;letter-spacing:0.5px">Ep ${ep.num}</span>
+      ${watched ? '<span style="font-size:9px;font-weight:700;color:#00E676;background:rgba(0,230,118,0.12);padding:1px 6px;border-radius:10px">VISTO</span>' : ''}
+      ${hasProgress ? `<span style="font-size:9px;font-weight:700;color:#ffc107;background:rgba(255,193,7,0.12);padding:1px 6px;border-radius:10px">${savedTimeDisplay}</span>` : ''}
     </div>
-
-    <div class="ep-thumb-overlay" aria-hidden="true">
-      <svg class="play-icon" width="48" height="48" viewBox="0 0 24 24" fill="white">
-        <circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.6)"/>
-        <polygon points="10 8 16 12 10 16 10 8" fill="white"/>
-      </svg>
-    </div>
-
-    <div class="ep-thumb-num" aria-hidden="true">EP ${ep.num}</div>
-  </div>
-  <div class="ep-body">
-    <div class="ep-num" aria-hidden="true">Episodio ${ep.num}</div>
-    <div class="ep-title">${epTitle}</div>
-    ${durationHTML}
-    ${synopsisHTML}
-    <div class="ep-switch-row">
-      <label class="ep-switch" data-season="${seasonIdx}" data-episode="${ep.num}" aria-label="${watched ? 'Marcar como no visto' : 'Marcar como visto'}">
-        <input type="checkbox" ${watched ? 'checked' : ''}>
-        <span class="ep-switch-track"></span>
+    <div style="font-size:13px;font-weight:700;color:#f0f0f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;margin-bottom:4px">${epTitle}</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      ${durationFmt ? `<span style="font-size:11px;color:#888899">${durationFmt}</span>` : ''}
+      <label class="ep-switch" data-season="${seasonIdx}" data-episode="${ep.num}" aria-label="${watched ? 'Marcar como no visto' : 'Marcar como visto'}" style="display:flex;align-items:center;gap:5px;cursor:pointer" onclick="event.stopPropagation()">
+        <input type="checkbox" ${watched ? 'checked' : ''} style="display:none">
+        <span class="ep-switch-track" style="width:28px;height:16px"></span>
         <span class="ep-switch-thumb"></span>
+        <span class="ep-switch-label${watched ? ' on' : ''}" id="lbl-${seasonIdx}-${ep.num}" style="font-size:11px;color:${watched ? '#00E676' : '#888899'}">${watched ? 'Visto' : ''}</span>
       </label>
-      <span class="ep-switch-label${watched ? ' on' : ''}" id="lbl-${seasonIdx}-${ep.num}">${watched ? 'Visto' : 'No visto'}</span>
     </div>
+    ${hasProgress ? `<div style="height:2px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${progressPercent.toFixed(1)}%;background:#00E676;border-radius:2px"></div></div>` : ''}
+  </div>
+  <!-- Miniatura derecha -->
+  <div style="width:96px;height:60px;border-radius:8px;overflow:hidden;flex-shrink:0;position:relative">
+    <div style="width:100%;height:100%;${thumbStyle};background-size:cover;background-position:center"></div>
+    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25);opacity:0;transition:opacity 0.15s" class="ep-thumb-overlay">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.55)"/><polygon points="10 8 16 12 10 16 10 8" fill="white"/></svg>
+    </div>
+    ${watched ? '<div style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00e676" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>' : ''}
   </div>
 </div>`;
 }
+
+// ── Sort state ────────────────────────────────────────────
+let episodeSortAsc = true; // true = ascendente (1→N), false = descendente (N→1)
 
 function renderEpisodes(animate) {
     const map = getWatchedMap();
@@ -611,8 +672,34 @@ function renderEpisodes(animate) {
         list.innerHTML = '';
         return;
     }
+
+    // ── Conteo total de episodios (TODAS las temporadas) ──
+    let totalEps = 0;
+    (SERIE.seasons || []).forEach(function(s) { if (s && s.episodes) totalEps += s.episodes.length; });
+    const metaEl = document.getElementById('serie-detail-meta');
+    if (metaEl && totalEps > 0) {
+        // Actualizar solo el stat de episodios si el contenedor ya fue populado
+        const epStatDiv = metaEl.querySelector('[data-stat="eps"]');
+        if (epStatDiv) epStatDiv.querySelector('.stat-val').textContent = totalEps;
+    }
+
+    // ── Wiring del botón ordenar (una sola vez) ───────────
+    const sortBtn = document.getElementById('btn-sort-episodes');
+    const sortLabel = document.getElementById('btn-sort-label');
+    if (sortBtn && !sortBtn._sortWired) {
+        sortBtn._sortWired = true;
+        sortBtn.addEventListener('click', function() {
+            episodeSortAsc = !episodeSortAsc;
+            if (sortLabel) sortLabel.textContent = episodeSortAsc ? 'A–Z' : 'Z–A';
+            sortBtn.style.color = episodeSortAsc ? '#aaaabc' : '#00E676';
+            sortBtn.style.borderColor = episodeSortAsc ? 'rgba(255,255,255,0.1)' : 'rgba(0,230,118,0.4)';
+            renderEpisodes(true);
+        });
+    }
     
-    const eps = SERIE.seasons[activeSeason].episodes;
+    let eps = [...SERIE.seasons[activeSeason].episodes];
+    // Aplicar orden
+    if (!episodeSortAsc) eps = eps.slice().reverse();
 
     // Obtener el target del Smart Play para destacar el episodio con progreso activo
     const resumeData = getSmartPlayTarget(SERIE, localStorage);
