@@ -1684,6 +1684,7 @@ body {
     align-items: flex-end !important;
     gap: 12px 24px;
     min-height: 380px;
+    padding-bottom: 60px !important;
   }
 
   /* Hero row: poster + info side by side */
@@ -1736,17 +1737,21 @@ body {
     line-height: 1.5 !important;
   }
 
-  /* Play button - al lado del poster, en la misma fila del hero */
+  /* Play button - fijo en la parte inferior del hero, no se desplaza con título largo */
   #serie-detail-section > div > div[style*="display: flex"][style*="gap: 10px"] {
-    margin-bottom: 0 !important;
-    margin-top: -8px !important;
+    position: absolute !important;
+    bottom: 28px !important;
+    left: 28px !important;
+    right: 28px !important;
+    margin: 0 !important;
     flex-shrink: 0 !important;
+    z-index: 3;
   }
 
   /* Meta stats - fila compacta debajo del hero, ancho completo */
   #serie-detail-meta {
     padding: 10px 0 !important;
-    margin-top: 0 !important;
+    margin-top: 40px !important;
     gap: 0 !important;
     display: flex !important;
     flex-direction: row !important;
@@ -2091,6 +2096,11 @@ body {
   }
   ::-webkit-scrollbar-thumb:hover {
     background: rgba(255,255,255,0.2);
+  }
+
+  /* Ocultar botón de transmitir (cast) en PC */
+  #btn-cast {
+    display: none !important;
   }
 }
 
