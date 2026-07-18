@@ -591,10 +591,13 @@ function initRecommendedTab() {
                 episodesList.style.display = '';
                 recommendedList.style.display = 'none';
                 if (sectionHeader) sectionHeader.style.display = '';
+                // Restaurar padding original de episodes-list si se modificó
+                episodesList.style.padding = '';
             } else if (tab === 'recommended') {
                 episodesList.style.display = 'none';
                 recommendedList.style.display = 'block';
-                if (sectionHeader) sectionHeader.style.display = 'none';
+                // NO ocultar el sectionHeader para que temporada y ordenar no se muevan
+                if (sectionHeader) sectionHeader.style.display = '';
 
                 // Cargar recomendados si no se han cargado aún
                 if (!recommendedList.dataset.loaded) {
