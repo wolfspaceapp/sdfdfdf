@@ -58,16 +58,16 @@ button:active,
 
 /* En táctil, asegurar que no quede fondo blanco */
 @media (hover: none) and (pointer: coarse) {
-  button:active,
-  .btn:active,
-  [role="button"]:active {
+  button:active:not(.nav-btn),
+  .btn:active:not(.nav-btn),
+  [role="button"]:active:not(.nav-btn) {
     background: rgba(255, 255, 255, 0.08) !important;
     color: inherit !important;
   }
   
-  button:focus,
-  .btn:focus,
-  [role="button"]:focus {
+  button:focus:not(.nav-btn),
+  .btn:focus:not(.nav-btn),
+  [role="button"]:focus:not(.nav-btn) {
     background: inherit !important;
   }
 
@@ -76,6 +76,17 @@ button:active,
   .ep-tab-btn:focus-visible {
     background: none !important;
     outline: none;
+  }
+
+  /* Nav buttons must keep their color when pressed */
+  .nav-btn:active {
+    color: inherit !important;
+    background: none !important;
+    transform: scale(0.95)
+  }
+
+  .nav-btn.active:active {
+    color: var(--accent) !important
   }
 }
 
