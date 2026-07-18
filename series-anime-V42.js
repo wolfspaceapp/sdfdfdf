@@ -590,10 +590,6 @@ function truncateSynopsis(text, maxLen) {
  * @returns {string} HTML string del card
  */
 function renderEpisodeCard(ep, seasonIdx, watchedMap, resumeData) {
-    const thumbStyle = ep.thumb
-        ? `background-image:url('${ep.thumb}')`
-        : `background:linear-gradient(135deg,#0a1628,#001a0d)`;
-
     const watched = isWatched(watchedMap, seasonIdx, ep.num);
 
     let progressPercent = 0;
@@ -624,37 +620,40 @@ function renderEpisodeCard(ep, seasonIdx, watchedMap, resumeData) {
     const epTitle = ep.title || `Episodio ${ep.num}`;
     const durationFmt = ep.duration ? fmtDuration(ep.duration) : '';
 
-    const cardClasses = ['ep-card', 'ep-card-compact'];
+    const cardClasses = ['ep-card-compact'];
     if (watched)          cardClasses.push('watched');
-    if (hasProgress)      cardClasses.push('in-progress');
     if (isCurrentEpisode) cardClasses.push('current-episode');
 
-    return `<div class="${cardClasses.join(' ')}" data-season="${seasonIdx}" data-episode="${ep.num}" style="display:flex;align-items:stretch;gap:14px;padding:12px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent${isCurrentEpisode ? ';background:rgba(0,230,118,0.05)' : ''}">
-  <!-- Miniatura izquierda -->
-  <div style="width:120px;height:75px;border-radius:8px;overflow:hidden;flex-shrink:0;position:relative;background:var(--bg3)">
-    <div style="width:100%;height:100%;${thumbStyle};background-size:cover;background-position:center"></div>
-    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.35);opacity:0;transition:opacity 0.2s" class="ep-thumb-overlay">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.6)"/><polygon points="10 8 16 12 10 16 10 8" fill="white"/></svg>
+    const thumbStyle = ep.thumb
+        ? `background-image:url('${ep.thumb}')`
+        : `background:linear-gradient(135deg,#0a1628,#001a0d)`;
+
+    return `<div class="${cardClasses.join(' ')}" data-season="${seasonIdx}" data-episode="${ep.num}">
+  <!-- Miniatura -->
+  <div class="ep-compact-thumb">
+    <div class="ep-compact-thumb-img" style="${thumbStyle}"></div>
+    <div class="ep-compact-thumb-overlay">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.6)"/><polygon points="10 8 16 12 10 16 10 8" fill="white"/></svg>
     </div>
-    ${watched ? '<div style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.75);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,230,118,0.3)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00e676" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>' : ''}
-    ${hasProgress ? `<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.2)"><div style="height:100%;width:${progressPercent.toFixed(1)}%;background:#00E676"></div></div>` : ''}
+    ${watched ? '<div class="ep-compact-watched-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00e676" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>' : ''}
+    ${hasProgress ? `<div class="ep-compact-progress"><div class="ep-compact-progress-fill" style="width:${progressPercent.toFixed(1)}%"></div></div>` : ''}
   </div>
   
-  <!-- Info derecha -->
-  <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center">
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-      <span style="font-size:11px;font-weight:800;color:#00E676;text-transform:uppercase;letter-spacing:0.5px">Episodio ${ep.num}</span>
-      ${hasProgress ? `<span style="font-size:10px;font-weight:700;color:#ffc107;background:rgba(255,193,7,0.12);padding:1px 6px;border-radius:10px;margin-left:4px">${savedTimeDisplay}</span>` : ''}
+  <!-- Info -->
+  <div class="ep-compact-body">
+    <div class="ep-compact-num-row">
+      <span class="ep-compact-num">Episodio ${ep.num}</span>
+      ${hasProgress ? `<span class="ep-compact-time-badge">${savedTimeDisplay}</span>` : ''}
     </div>
-    <div style="font-size:14px;font-weight:700;color:#f0f0f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;margin-bottom:4px">${epTitle}</div>
-    ${ep.synopsis ? `<div style="font-size:11.5px;color:#9999aa;line-height:1.4;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${ep.synopsis}</div>` : ''}
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
-      ${durationFmt ? `<span style="font-size:11px;font-weight:600;color:#777788;background:rgba(255,255,255,0.05);padding:2px 8px;border-radius:4px">${durationFmt}</span>` : '<div></div>'}
-      <label class="ep-switch" data-season="${seasonIdx}" data-episode="${ep.num}" aria-label="${watched ? 'Marcar como no visto' : 'Marcar como visto'}" style="display:flex;align-items:center;gap:6px;cursor:pointer" onclick="event.stopPropagation()">
-        <span class="ep-switch-label${watched ? ' on' : ''}" id="lbl-${seasonIdx}-${ep.num}" style="font-size:11px;font-weight:600;color:${watched ? '#00E676' : '#666677'}">${watched ? 'Visto' : 'Marcar'}</span>
-        <div style="position:relative;width:32px;height:18px;background:${watched ? '#00E676' : 'rgba(255,255,255,0.1)'};border-radius:10px;transition:0.3s">
+    <div class="ep-compact-title">${epTitle}</div>
+    ${ep.synopsis ? `<div class="ep-compact-synopsis">${ep.synopsis}</div>` : ''}
+    <div class="ep-compact-footer">
+      ${durationFmt ? `<span class="ep-compact-duration">${durationFmt}</span>` : '<div></div>'}
+      <label class="ep-compact-switch" data-season="${seasonIdx}" data-episode="${ep.num}" aria-label="${watched ? 'Marcar como no visto' : 'Marcar como visto'}" onclick="event.stopPropagation()">
+        <span class="ep-compact-switch-label${watched ? ' on' : ''}" id="lbl-${seasonIdx}-${ep.num}">${watched ? 'Visto' : 'Marcar'}</span>
+        <div class="ep-compact-switch-track${watched ? ' on' : ''}">
           <input type="checkbox" ${watched ? 'checked' : ''} style="display:none">
-          <div style="position:absolute;top:2px;left:${watched ? '16px' : '2px'};width:14px;height:14px;background:#fff;border-radius:50%;transition:0.3s"></div>
+          <div class="ep-compact-switch-thumb"></div>
         </div>
       </label>
     </div>
@@ -709,16 +708,16 @@ function renderEpisodes(animate) {
     list.innerHTML = eps.map(ep => renderEpisodeCard(ep, activeSeason, map, resumeData)).join('');
 
     // ── Event delegation: card click → play ───────────────
-    list.querySelectorAll('.ep-card').forEach(c =>
+    list.querySelectorAll('.ep-card-compact').forEach(c =>
         c.addEventListener('click', e => {
-            if (e.target.closest('.ep-switch')) return;
+            if (e.target.closest('.ep-compact-switch')) return;
             const s = +c.dataset.season, epNum = +c.dataset.episode;
             playEpisode(s, epNum);
         })
     );
 
     // ── Event delegation: watched toggle ──────────────────
-    list.querySelectorAll('.ep-switch').forEach(sw =>
+    list.querySelectorAll('.ep-compact-switch').forEach(sw =>
         sw.addEventListener('change', () => {
             const s = +sw.dataset.season, ep = +sw.dataset.episode;
             const val = sw.querySelector('input').checked;
@@ -726,14 +725,14 @@ function renderEpisodes(animate) {
             const lbl = $(`lbl-${s}-${ep}`);
             if (lbl) { lbl.textContent = val ? 'Visto' : 'No visto'; lbl.classList.toggle('on', val); }
             // Update watched badge immediately without full re-render
-            const card = list.querySelector(`.ep-card[data-season="${s}"][data-episode="${ep}"]`);
+            const card = list.querySelector(`.ep-card-compact[data-season="${s}"][data-episode="${ep}"]`);
             if (card) {
-                const badge = card.querySelector('.ep-watched-badge');
+                const badge = card.querySelector('.ep-compact-watched-badge');
                 if (badge) {
                     if (val) {
-                        badge.removeAttribute('hidden');
+                        badge.style.display = '';
                     } else {
-                        badge.setAttribute('hidden', '');
+                        badge.style.display = 'none';
                     }
                 }
                 card.classList.toggle('watched', val);
@@ -765,15 +764,15 @@ function playEpisode(seasonIdx, epNum, animate = false, isAutoAdvance = false) {
 
     // Marcar como visto (Siempre activo por defecto)
     setWatched(seasonIdx, epNum, true);
-    const input = document.querySelector(`.ep-switch[data-season="${seasonIdx}"][data-episode="${epNum}"] input`);
+    const input = document.querySelector(`.ep-compact-switch[data-season="${seasonIdx}"][data-episode="${epNum}"] input`);
     if (input) input.checked = true;
     const lbl = $(`lbl-${seasonIdx}-${epNum}`);
     if (lbl) { lbl.textContent = 'Visto'; lbl.classList.add('on'); }
     // Also update badge DOM directly if list is visible
-    const epCard = document.querySelector(`.ep-card[data-season="${seasonIdx}"][data-episode="${epNum}"]`);
+    const epCard = document.querySelector(`.ep-card-compact[data-season="${seasonIdx}"][data-episode="${epNum}"]`);
     if (epCard) {
-        const badge = epCard.querySelector('.ep-watched-badge');
-        if (badge) badge.removeAttribute('hidden');
+        const badge = epCard.querySelector('.ep-compact-watched-badge');
+        if (badge) badge.style.display = '';
         epCard.classList.add('watched');
     }
 
@@ -1496,15 +1495,15 @@ function updateInterfaceForEpisode(seasonIdx, ep) {
 
         // Marcar como visto
         setWatched(seasonIdx, ep.num, true);
-        const input = document.querySelector(`.ep-switch[data-season="${seasonIdx}"][data-episode="${ep.num}"] input`);
+        const input = document.querySelector(`.ep-compact-switch[data-season="${seasonIdx}"][data-episode="${ep.num}"] input`);
         if (input) input.checked = true;
         const lbl = document.getElementById(`lbl-${seasonIdx}-${ep.num}`);
         if (lbl) { lbl.textContent = 'Visto'; lbl.classList.add('on'); }
         // Update watched badge DOM
-        const epCardAuto = document.querySelector(`.ep-card[data-season="${seasonIdx}"][data-episode="${ep.num}"]`);
+        const epCardAuto = document.querySelector(`.ep-card-compact[data-season="${seasonIdx}"][data-episode="${ep.num}"]`);
         if (epCardAuto) {
-            const badgeAuto = epCardAuto.querySelector('.ep-watched-badge');
-            if (badgeAuto) badgeAuto.removeAttribute('hidden');
+            const badgeAuto = epCardAuto.querySelector('.ep-compact-watched-badge');
+            if (badgeAuto) badgeAuto.style.display = '';
             epCardAuto.classList.add('watched');
         }
 
@@ -2744,9 +2743,9 @@ if (isInitMovie) {
             }
 
             // 2. Animar cada episodio marcado como visto uno por uno
-            const switches = Array.from(document.querySelectorAll('.ep-switch input:checked'));
+            const switches = Array.from(document.querySelectorAll('.ep-compact-switch input:checked'));
             for (const input of switches) {
-                const row = input.closest('.ep-item') || input.closest('.ep-switch');
+                const row = input.closest('.ep-compact-switch');
                 if (row) {
                     row.style.transition = 'opacity 0.25s, transform 0.25s';
                     row.style.opacity = '0.3';
