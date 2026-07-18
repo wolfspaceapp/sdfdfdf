@@ -14,6 +14,30 @@ let resumeToastShown = false;
 
 const GLOBAL_IS_MOBILE = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 
+// ── PC Detection for enhanced desktop UI ───────────────────
+const GLOBAL_IS_PC = window.matchMedia('(pointer: fine) and (min-width: 1024px)').matches;
+if (GLOBAL_IS_PC) {
+    document.documentElement.classList.add('is-pc');
+    document.getElementById('serie-detail-section')?.classList.add('is-pc');
+
+    // Parallax sutil en el backdrop al hacer scroll (solo PC)
+    const backdrop = document.getElementById('serie-detail-backdrop');
+    if (backdrop) {
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                requestAnimationFrame(() => {
+                    const scrollY = window.scrollY;
+                    const translateY = Math.min(scrollY * 0.15, 80);
+                    backdrop.style.transform = `translateY(${translateY}px)`;
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }, { passive: true });
+    }
+}
+
 // ── Utilidades ────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 
@@ -239,26 +263,53 @@ function updateSmartPlayLabel() {
     const svgPlay = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="flex-shrink:0"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
 
     if (hasAnyProgress) {
-        // Obtener el tiempo guardado del episodio target para mostrarlo
+        // Obtener datos del episodio target
         const targetSeason = SERIE.seasons && SERIE.seasons[target.seasonIdx];
         const targetEp = targetSeason && targetSeason.episodes && targetSeason.episodes.find(e => e.num === target.epNum);
-        let timeStr = '';
+        let savedTime = 0;
+        let duration = 0;
         if (targetEp && targetEp.langs && targetEp.langs[0]) {
             const rKey = `wa_resume_${SERIE.id}_s${target.seasonIdx}_e${target.epNum}_${targetEp.langs[0].name}`;
-            const savedTime = parseInt(localStorage.getItem(rKey) || '0', 10);
-            if (savedTime > 5) {
-                const h = Math.floor(savedTime / 3600);
-                const m = Math.floor((savedTime % 3600) / 60);
-                const s = savedTime % 60;
-                timeStr = h > 0
-                    ? ` · ${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
-                    : ` · ${m}:${String(s).padStart(2,'0')}`;
-            }
+            savedTime = parseInt(localStorage.getItem(rKey) || '0', 10);
+            duration = parseInt(targetEp.duration, 10) || 0;
         }
-        btn.innerHTML = svgPlay + `Continuar &middot; Ep ${target.epNum}${timeStr}`;
-        btn.setAttribute('aria-label', `Continuar reproducción del episodio ${target.epNum}`);
+        // Formatear tiempo guardado
+        let timeDisplay = '';
+        if (savedTime > 5) {
+            const h = Math.floor(savedTime / 3600);
+            const m = Math.floor((savedTime % 3600) / 60);
+            const s = savedTime % 60;
+            timeDisplay = h > 0
+                ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+                : `${m}:${String(s).padStart(2,'0')}`;
+        }
+        // Calcular porcentaje de progreso
+        const progressPct = (duration > 0 && savedTime > 5) ? Math.min(95, (savedTime / duration) * 100) : 0;
+        // Nombre de temporada
+        const seasonLabel = targetSeason && targetSeason.name ? targetSeason.name : `Temporada ${target.seasonIdx + 1}`;
+
+        btn.innerHTML = `<div class="spb-continue">
+            <div class="spb-icon">${svgPlay}</div>
+            <div class="spb-body">
+                <div class="spb-top">
+                    <span class="spb-label">Continuar</span>
+                    <span class="spb-meta">${seasonLabel} &middot; Ep. ${target.epNum}</span>
+                </div>
+                <div class="spb-bottom">
+                    ${timeDisplay ? `<span class="spb-time">${timeDisplay}</span>` : ''}
+                    ${progressPct > 0 ? `<div class="spb-progress"><div class="spb-progress-fill" style="width:${progressPct.toFixed(0)}%"></div></div>` : ''}
+                </div>
+            </div>
+            <div class="spb-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+        </div>`;
+        btn.setAttribute('aria-label', `Continuar ${seasonLabel}, episodio ${target.epNum}${timeDisplay ? ', ' + timeDisplay : ''}`);
     } else {
-        btn.innerHTML = svgPlay + 'Reproducir';
+        btn.innerHTML = `<div class="spb-play">
+            <div class="spb-icon">${svgPlay}</div>
+            <span class="spb-play-text">Reproducir</span>
+        </div>`;
         btn.setAttribute('aria-label', 'Reproducir primer episodio');
     }
 
@@ -892,6 +943,13 @@ function renderEpisodeCard(ep, seasonIdx, watchedMap, resumeData) {
     ${ep.synopsis ? `<div class="ep-compact-synopsis">${ep.synopsis}</div>` : ''}
     <div class="ep-compact-footer">
       ${durationFmt ? `<span class="ep-compact-duration">${durationFmt}</span>` : '<div></div>'}
+      <label class="ep-compact-switch" data-season="${seasonIdx}" data-episode="${ep.num}" aria-label="${watched ? 'Marcar como no visto' : 'Marcar como visto'}" onclick="event.stopPropagation()">
+        <span class="ep-compact-switch-label${watched ? ' on' : ''}" id="lbl-${seasonIdx}-${ep.num}">${watched ? 'Visto' : 'Marcar'}</span>
+        <div class="ep-compact-switch-track${watched ? ' on' : ''}">
+          <input type="checkbox" ${watched ? 'checked' : ''} style="display:none">
+          <div class="ep-compact-switch-thumb"></div>
+        </div>
+      </label>
     </div>
   </div>
 </div>`;
@@ -1029,6 +1087,36 @@ function renderEpisodes(animate) {
                     playEpisode(s, epNum);
                 })
             );
+
+            // ── Switch de visto ───────────────────────────────────
+            list.querySelectorAll('.ep-compact-switch').forEach(sw => {
+                const seasonIdx = +sw.dataset.season;
+                const epNum     = +sw.dataset.episode;
+                const track     = sw.querySelector('.ep-compact-switch-track');
+                const label     = sw.querySelector('.ep-compact-switch-label');
+                const input     = sw.querySelector('input');
+                sw.addEventListener('click', e => {
+                    e.stopPropagation();
+                    const nowWatched = !input.checked;
+                    setWatched(seasonIdx, epNum, nowWatched);
+                    input.checked = nowWatched;
+                    if (nowWatched) {
+                        track.classList.add('on');
+                        label.classList.add('on');
+                        label.textContent = 'Visto';
+                        sw.closest('.ep-card-compact')?.classList.add('watched');
+                        const badge = sw.closest('.ep-card-compact')?.querySelector('.ep-compact-watched-badge');
+                        if (badge) badge.style.display = '';
+                    } else {
+                        track.classList.remove('on');
+                        label.classList.remove('on');
+                        label.textContent = 'Marcar';
+                        sw.closest('.ep-card-compact')?.classList.remove('watched');
+                        const badge = sw.closest('.ep-card-compact')?.querySelector('.ep-compact-watched-badge');
+                        if (badge) badge.style.display = 'none';
+                    }
+                });
+            });
 
             if (animate) {
                 list.classList.remove('season-change');
