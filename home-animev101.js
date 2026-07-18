@@ -1339,7 +1339,7 @@
             main.style.marginTop = '';
         }
 
-        if (view === 'home') renderHomeFavs();
+        if (view === 'home' && state.prev !== null) renderHomeFavs();
         if (view === 'search') { renderSearch($('search-input').value, state.catFilter); updateSearchHistoryCountLabel(); }
         if (view === 'search-history') renderSearchHistory();
         if (view === 'categories') renderCategories();
@@ -1731,6 +1731,8 @@
 
         if (!handleURLParams()) {
             navigateTo('home');
+            // renderHome() already called above, so renderHomeFavs() inside navigateTo('home') would duplicate favorites
+            // We handle this by checking if renderHomeFavs was already called
         }
 
         document.getElementById('cat-library-back').addEventListener('click', () => navigateTo('categories', true));
