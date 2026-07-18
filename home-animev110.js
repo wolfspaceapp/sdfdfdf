@@ -655,10 +655,23 @@
         return item.category.split(/,\s*/).map(c => c.trim()).includes('H');
     };
 
-    const visibleDATA = () => hCatEnabled ? DATA : DATA.filter(d => {
-        const cats = d.category ? d.category.split(/,\s*/).map(c => c.trim()) : [];
-        return !cats.includes('H');
-    });
+    // Deduplicar DATA por ID para evitar entradas repetidas
+    const uniqueData = (arr) => {
+        const seen = new Set();
+        return arr.filter(item => {
+            if (!item || seen.has(item.id)) return false;
+            seen.add(item.id);
+            return true;
+        });
+    };
+
+    const visibleDATA = () => {
+        const filtered = hCatEnabled ? DATA : DATA.filter(d => {
+            const cats = d.category ? d.category.split(/,\s*/).map(c => c.trim()) : [];
+            return !cats.includes('H');
+        });
+        return uniqueData(filtered);
+    };
 
     const saveHEnabled = () => localStorage.setItem('h_enabled', hCatEnabled ? '1' : '0');
 
@@ -742,11 +755,14 @@
     }
 
     let _homeRendering = false;
+    let _homeRenderCount = 0;
     function renderHome() {
         // Evitar re-renderizados duplicados en rápida sucesión
         if (_homeRendering) return;
         _homeRendering = true;
-        requestAnimationFrame(() => { _homeRendering = false; });
+        const myRenderId = ++_homeRenderCount;
+        // Liberar después de un tiempo prudente para permitir re-renderizados legítimos
+        setTimeout(() => { if (_homeRenderCount === myRenderId) _homeRendering = false; }, 500);
 
         const featured = visibleDATA().filter(d => d.featured);
         const airing = visibleDATA().filter(d => d.status === 'En emisión').slice(0, 10);
@@ -997,18 +1013,12 @@
             const url = card.dataset.url;
             const resumeKey = card.dataset.resumekey;
 
-            // Remove button
+            // Remove button - open confirmation modal
             if (removeBtn) {
                 e.stopPropagation();
                 const metaKey = 'wa_cw_meta_' + serieId;
-                localStorage.removeItem(metaKey);
-                if (resumeKey) localStorage.removeItem(resumeKey);
-                card.style.transition = 'transform 0.2s, opacity 0.2s';
-                card.style.transform = 'scale(0.9)';
-                card.style.opacity = '0';
-                setTimeout(() => {
-                    renderContinueWatching();
-                }, 250);
+                const title = card.querySelector('.cw-title');
+                openCWRemoveConfirm(serieId, metaKey, resumeKey, title ? title.textContent : '');
                 return;
             }
 
@@ -1633,6 +1643,38 @@
         _removeSelWs = false;
     }
 
+    // ── CW Remove Confirmation Modal ──
+    let _cwRemoveData = null;
+
+    function openCWRemoveConfirm(serieId, metaKey, resumeKey, title) {
+        _cwRemoveData = { serieId, metaKey, resumeKey };
+        const desc = document.getElementById('cw-remove-desc');
+        if (desc) desc.textContent = title || 'Este contenido';
+        const o = document.getElementById('cw-remove-overlay');
+        if (o) {
+            o.classList.add('open');
+            o.setAttribute('aria-hidden', 'false');
+        }
+    }
+
+    function closeCWRemoveConfirm() {
+        const o = document.getElementById('cw-remove-overlay');
+        if (o) {
+            o.classList.remove('open');
+            o.setAttribute('aria-hidden', 'true');
+        }
+        _cwRemoveData = null;
+    }
+
+    function executeCWRemove() {
+        if (!_cwRemoveData) return;
+        const { metaKey, resumeKey } = _cwRemoveData;
+        localStorage.removeItem(metaKey);
+        if (resumeKey) localStorage.removeItem(resumeKey);
+        closeCWRemoveConfirm();
+        renderContinueWatching();
+    }
+
     document.addEventListener('click', e => {
         const heroBtn = e.target.closest('[data-hero-nav]');
         if (heroBtn) { navigateTo(heroBtn.dataset.heroNav); return; }
@@ -2060,6 +2102,13 @@
             renderFavorites();
             renderProfile();
         });
+
+        // CW Remove modal listeners
+        $('cw-remove-cancel').addEventListener('click', closeCWRemoveConfirm);
+        $('cw-remove-overlay').addEventListener('click', e => {
+            if (e.target === $('cw-remove-overlay')) closeCWRemoveConfirm();
+        });
+        $('cw-remove-accept').addEventListener('click', executeCWRemove);
 
         let hTaps = 0, hTimer;
         const catTitle = document.getElementById('cat-page-title');
