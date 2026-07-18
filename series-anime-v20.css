@@ -1610,7 +1610,7 @@ body {
 @media (min-width: 1024px) {
   /* ── Backdrop Cinematográfico ── */
   #serie-detail-backdrop {
-    height: 520px !important;
+    height: 440px !important;
   }
   #serie-detail-backdrop::after {
     content: '';
@@ -1639,32 +1639,17 @@ body {
     padding: 0;
   }
 
-  /* Columna izquierda: Hero con info de la serie - misma altura que sidebar */
+  /* Columna izquierda: Hero con info de la serie */
   #serie-detail-section {
     flex: 1;
     min-width: 0;
-    position: sticky;
-    top: 0;
-    align-self: flex-start;
-    max-height: 100vh;
-    overflow-y: auto;
-  }
-  #serie-detail-section::-webkit-scrollbar {
-    width: 4px;
-  }
-  #serie-detail-section::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  #serie-detail-section::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.1);
-    border-radius: 2px;
   }
 
   /* ── Hero: Poster + Info en desktop — cinematic layout ── */
   #serie-detail-section > div:not(#serie-detail-backdrop) {
     /* The wrapper div with padding/margin-top */
-    padding: 80px 40px 40px !important;
-    margin-top: -160px !important;
+    padding: 60px 32px 32px !important;
+    margin-top: -120px !important;
     position: relative;
     z-index: 2;
     animation: pc-hero-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
@@ -1673,18 +1658,18 @@ body {
   /* Hero row: poster + info side by side */
   #serie-detail-section > div > div[style*="display: flex"][style*="align-items: flex-end"] {
     display: flex !important;
-    gap: 40px !important;
+    gap: 28px !important;
     align-items: flex-end !important;
-    margin-bottom: 24px !important;
+    margin-bottom: 20px !important;
   }
 
   /* Poster */
   #serie-detail-poster {
-    width: 320px !important;
-    min-width: 320px !important;
-    height: 450px !important;
-    border-radius: 18px !important;
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.06);
+    width: 260px !important;
+    min-width: 260px !important;
+    height: 370px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.06);
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
     border: none !important;
   }
@@ -1695,15 +1680,15 @@ body {
 
   /* Info column next to poster */
   #serie-detail-section > div > div > div[style*="flex: 1"] {
-    padding-bottom: 8px !important;
+    padding-bottom: 6px !important;
   }
 
   /* Title */
   #serie-detail-title {
-    font-size: 40px !important;
+    font-size: 32px !important;
     font-weight: 900 !important;
-    line-height: 1.1 !important;
-    margin-bottom: 14px !important;
+    line-height: 1.15 !important;
+    margin-bottom: 10px !important;
     letter-spacing: -0.5px;
     text-shadow: 0 2px 20px rgba(0,0,0,0.3);
     background: linear-gradient(135deg, #fff 40%, rgba(0,230,118,0.7) 100%);
@@ -1714,28 +1699,28 @@ body {
 
   /* Genres */
   #serie-detail-genres {
-    font-size: 14px !important;
-    line-height: 1.6 !important;
+    font-size: 13px !important;
+    line-height: 1.5 !important;
   }
 
   /* Actions row (play button) */
   #serie-detail-section > div > div[style*="display: flex"][style*="gap: 10px"] {
-    margin-bottom: 24px !important;
+    margin-bottom: 20px !important;
   }
 
   /* Meta stats row */
   #serie-detail-meta {
-    padding: 16px 0 !important;
-    margin-top: 8px !important;
-    gap: 16px !important;
+    padding: 12px 0 !important;
+    margin-top: 6px !important;
+    gap: 14px !important;
   }
 
   /* ── Columna derecha: Episodios en sidebar scrollable ── */
   #embedded-episodes-section {
-    width: 460px;
-    min-width: 460px;
-    max-width: 460px;
-    padding: 24px 24px 24px 0;
+    width: 400px;
+    min-width: 400px;
+    max-width: 400px;
+    padding: 20px 20px 20px 0;
     position: sticky;
     top: 0;
     align-self: flex-start;
@@ -1766,22 +1751,22 @@ body {
     flex-shrink: 0;
   }
 
-  /* Tabs buttons más grandes en desktop */
+  /* Tabs buttons en desktop */
   #episodes-tabs-bar .ep-tab-btn {
-    font-size: 14px !important;
-    padding: 10px 16px !important;
+    font-size: 13px !important;
+    padding: 8px 14px !important;
   }
 
   /* Header de temporada y ordenar - centrado en desktop */
   .episodes-section-header {
     width: 100%;
-    margin: 0 0 8px;
-    padding: 8px 0 !important;
+    margin: 0 0 6px;
+    padding: 6px 0 !important;
     flex-shrink: 0;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 12px;
+    gap: 10px;
   }
 
   /* Lista de episodios en scroll */
@@ -1811,9 +1796,9 @@ body {
   }
 
   .ep-card-compact {
-    padding: 12px 16px;
-    gap: 14px;
-    border-radius: 12px;
+    padding: 10px 14px;
+    gap: 12px;
+    border-radius: 10px;
     background: rgba(255,255,255,0.02);
     border: 1px solid rgba(255,255,255,0.04);
     transition: transform 0.2s ease,
@@ -1834,9 +1819,9 @@ body {
   }
 
   .ep-compact-thumb {
-    width: 140px;
-    min-width: 140px;
-    height: 82px;
+    width: 120px;
+    min-width: 120px;
+    height: 70px;
     border-radius: 8px;
     overflow: hidden;
     transition: transform 0.2s ease;
@@ -1846,18 +1831,18 @@ body {
   }
 
   .ep-compact-title {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
   }
 
   .ep-compact-synopsis {
-    font-size: 12px;
+    font-size: 11px;
     -webkit-line-clamp: 1;
     line-height: 1.4;
   }
 
   .ep-compact-num {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     color: var(--accent);
     background: rgba(0,230,118,0.1);
@@ -1866,34 +1851,34 @@ body {
   }
 
   .ep-compact-duration {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--text3);
   }
 
   /* Season dropdown en desktop sidebar */
   .season-dropdown {
-    max-width: 240px;
+    max-width: 200px;
     margin: 0;
   }
 
-  /* Sort button más grande en desktop */
+  /* Sort button en desktop */
   #btn-sort-episodes {
-    padding: 7px 16px !important;
-    font-size: 12px !important;
-    border-radius: 24px !important;
+    padding: 6px 14px !important;
+    font-size: 11px !important;
+    border-radius: 20px !important;
   }
   #btn-sort-episodes svg {
-    width: 14px !important;
-    height: 14px !important;
+    width: 12px !important;
+    height: 12px !important;
   }
   #btn-sort-label {
-    font-size: 11px !important;
+    font-size: 10px !important;
   }
 
   /* ── Smart Play Button en desktop ── */
   #btn-reproducir-serie {
-    min-height: 64px;
-    border-radius: 16px !important;
+    min-height: 56px;
+    border-radius: 14px !important;
     transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
                 box-shadow 0.3s ease !important;
   }
@@ -1906,30 +1891,30 @@ body {
   }
 
   .spb-continue {
-    padding: 14px 20px;
-    gap: 16px;
+    padding: 12px 18px;
+    gap: 14px;
   }
   .spb-icon {
-    width: 48px;
-    height: 48px;
+    width: 42px;
+    height: 42px;
     border-radius: 12px;
   }
   .spb-label {
-    font-size: 15px;
-  }
-  .spb-meta {
     font-size: 14px;
   }
-  .spb-time {
+  .spb-meta {
     font-size: 13px;
   }
+  .spb-time {
+    font-size: 12px;
+  }
   .spb-progress {
-    max-width: 140px;
-    height: 5px;
+    max-width: 120px;
+    height: 4px;
   }
   .spb-arrow {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     transition: transform 0.25s ease, background 0.25s ease;
   }
   #btn-reproducir-serie:hover .spb-arrow {
@@ -1938,11 +1923,11 @@ body {
   }
 
   .spb-play {
-    padding: 18px 28px;
-    gap: 14px;
+    padding: 14px 24px;
+    gap: 12px;
   }
   .spb-play-text {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   /* Header en desktop */
@@ -2305,13 +2290,14 @@ body {
   }
 
   .action-btn {
-    padding: 8px 10px;
+    padding: 0;
     font-size: 12px;
-    gap: 4px;
-    border-radius: 10px;
-    width: auto;
-    height: auto;
+    gap: 0;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
     justify-content: center;
+    flex-shrink: 0;
   }
 
   .action-btn svg {
@@ -2320,8 +2306,7 @@ body {
   }
 
   .action-btn span {
-    display: inline;
-    font-size: 11px;
+    display: none;
   }
 
   #player-ep-title {
@@ -2437,6 +2422,11 @@ body {
     height: 16px;
   }
 
+  .action-btn span {
+    display: inline;
+    font-size: 10px;
+  }
+
   .player-actions {
     gap: 4px;
   }
@@ -2458,11 +2448,6 @@ body {
 
   #wolf-player-container .plyr {
     max-height: 100%;
-  }
-
-  /* Ocultar texto en botones de acción en landscape muy estrecho */
-  .action-btn span {
-    display: none;
   }
 
   .action-btn {
@@ -2531,22 +2516,23 @@ body {
   }
 
   .action-btn {
-    padding: 6px 10px;
+    padding: 0;
     font-size: 12px;
-    gap: 4px;
-    border-radius: 10px;
-    width: auto;
-    height: auto;
+    gap: 0;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    justify-content: center;
+    flex-shrink: 0;
   }
 
   .action-btn svg {
-    width: 17px;
-    height: 17px;
+    width: 18px;
+    height: 18px;
   }
 
   .action-btn span {
-    display: inline;
-    font-size: 11px;
+    display: none;
   }
 
   .player-actions {
