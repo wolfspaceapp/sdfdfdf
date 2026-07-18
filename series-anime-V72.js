@@ -1764,15 +1764,22 @@ function createLoadingOverlay(parent) {
     const el = document.createElement('div');
     el.className = 'vp-loading';
     el.innerHTML = `
-      <div class="vp-loading-ring">
-        <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20"/></svg>
+      <div class="vp-loading-spinner">
+        <svg class="vp-loading-arc" viewBox="0 0 50 50">
+          <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <div class="vp-loading-pulse"></div>
       </div>
-      <span class="vp-loading-text">Cargando servidor...</span>`;
+      <div class="vp-loading-content">
+        <span class="vp-loading-title">Conectando al servidor</span>
+        <span class="vp-loading-text">Preparando el reproductor...</span>
+      </div>
+      <div class="vp-loading-bar"><div class="vp-loading-bar-fill"></div></div>`;
     parent.appendChild(el);
     return {
         hide() {
             el.classList.add('done');
-            setTimeout(() => el.remove(), 420);
+            setTimeout(() => el.remove(), 500);
         }
     };
 }
@@ -3205,6 +3212,104 @@ if (isInitMovie) {
     // Se eliminó el auto-play al entrar para que el usuario pueda navegar
     // los episodios sin que se abra el reproductor automáticamente.
 }
+
+// ── Botones de Favoritos y Mi Lista en detalle ────────────
+(function() {
+    const favBtn = document.getElementById('btn-detail-fav');
+    const mylistBtn = document.getElementById('btn-detail-mylist');
+    const favLabel = document.getElementById('btn-detail-fav-label');
+    const mylistLabel = document.getElementById('btn-detail-mylist-label');
+    
+    if (!favBtn || !mylistBtn) return;
+    
+    // Obtener ID de la serie desde window.SERIE o desde el DOM
+    function getSerieId() {
+        if (window.SERIE && window.SERIE.id) return window.SERIE.id;
+        // Try to get from wolf-meta
+        const meta = document.getElementById('wolf-meta');
+        if (meta && meta.dataset.id) return parseInt(meta.dataset.id, 10);
+        // Generate from URL
+        const url = window.location.href;
+        var hash = 0;
+        for (var i = 0; i < url.length; i++) {
+            hash = ((hash << 5) - hash) + url.charCodeAt(i);
+            hash = hash & hash;
+        }
+        return Math.abs(hash);
+    }
+    
+    const serieId = getSerieId();
+    
+    // Access home page functions via window if available
+    function isFav(id) {
+        try {
+            const favs = JSON.parse(localStorage.getItem('wolfanime_favs_v1') || '[]');
+            return favs.includes(id);
+        } catch(e) { return false; }
+    }
+    
+    function getWatchStatus(id) {
+        try {
+            const ws = JSON.parse(localStorage.getItem('wolfanime_watchstatus_v1') || '{}');
+            return ws[id] || null;
+        } catch(e) { return null; }
+    }
+    
+    function toggleFav(id) {
+        try {
+            let favs = JSON.parse(localStorage.getItem('wolfanime_favs_v1') || '[]');
+            if (favs.includes(id)) {
+                favs = favs.filter(f => f !== id);
+            } else {
+                favs.push(id);
+            }
+            localStorage.setItem('wolfanime_favs_v1', JSON.stringify(favs));
+            updateFavUI();
+        } catch(e) {}
+    }
+    
+    function toggleMyList(id) {
+        try {
+            let ws = JSON.parse(localStorage.getItem('wolfanime_watchstatus_v1') || '{}');
+            if (ws[id]) {
+                delete ws[id];
+            } else {
+                ws[id] = 'Pendiente';
+            }
+            localStorage.setItem('wolfanime_watchstatus_v1', JSON.stringify(ws));
+            updateMyListUI();
+        } catch(e) {}
+    }
+    
+    function updateFavUI() {
+        const active = isFav(serieId);
+        favBtn.style.background = active ? 'rgba(255, 70, 70, 0.15)' : 'rgba(255,255,255,0.06)';
+        favBtn.style.borderColor = active ? 'rgba(255, 70, 70, 0.3)' : 'rgba(255,255,255,0.12)';
+        favBtn.style.color = active ? '#ff4646' : '#fff';
+        favLabel.textContent = active ? 'En Favoritos' : 'Favoritos';
+        // Animate
+        favBtn.style.transform = 'scale(0.92)';
+        requestAnimationFrame(() => { favBtn.style.transform = 'scale(1)'; });
+    }
+    
+    function updateMyListUI() {
+        const active = !!getWatchStatus(serieId);
+        mylistBtn.style.background = active ? 'rgba(0, 230, 118, 0.12)' : 'rgba(255,255,255,0.06)';
+        mylistBtn.style.borderColor = active ? 'rgba(0, 230, 118, 0.3)' : 'rgba(255,255,255,0.12)';
+        mylistBtn.style.color = active ? 'var(--accent)' : '#fff';
+        mylistLabel.textContent = active ? 'En Mi Lista' : 'Mi Lista';
+        // Animate
+        mylistBtn.style.transform = 'scale(0.92)';
+        requestAnimationFrame(() => { mylistBtn.style.transform = 'scale(1)'; });
+    }
+    
+    favBtn.addEventListener('click', () => toggleFav(serieId));
+    mylistBtn.addEventListener('click', () => toggleMyList(serieId));
+    
+    // Initial UI state
+    updateFavUI();
+    updateMyListUI();
+})();
 
 
 // ── Modal de Reportes ─────────────────────────────────────
