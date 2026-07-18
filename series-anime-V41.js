@@ -629,33 +629,35 @@ function renderEpisodeCard(ep, seasonIdx, watchedMap, resumeData) {
     if (hasProgress)      cardClasses.push('in-progress');
     if (isCurrentEpisode) cardClasses.push('current-episode');
 
-    return `<div class="${cardClasses.join(' ')}" data-season="${seasonIdx}" data-episode="${ep.num}" style="display:flex;align-items:center;gap:0;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent${isCurrentEpisode ? ';background:rgba(0,230,118,0.05)' : ''}">
-  <!-- Info izquierda -->
-  <div style="flex:1;min-width:0;padding-right:12px">
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
-      <span style="font-size:10px;font-weight:700;color:#888899;text-transform:uppercase;letter-spacing:0.5px">Ep ${ep.num}</span>
-      ${watched ? '<span style="font-size:9px;font-weight:700;color:#00E676;background:rgba(0,230,118,0.12);padding:1px 6px;border-radius:10px">VISTO</span>' : ''}
-      ${hasProgress ? `<span style="font-size:9px;font-weight:700;color:#ffc107;background:rgba(255,193,7,0.12);padding:1px 6px;border-radius:10px">${savedTimeDisplay}</span>` : ''}
+    return `<div class="${cardClasses.join(' ')}" data-season="${seasonIdx}" data-episode="${ep.num}" style="display:flex;align-items:stretch;gap:14px;padding:12px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent${isCurrentEpisode ? ';background:rgba(0,230,118,0.05)' : ''}">
+  <!-- Miniatura izquierda -->
+  <div style="width:120px;height:75px;border-radius:8px;overflow:hidden;flex-shrink:0;position:relative;background:var(--bg3)">
+    <div style="width:100%;height:100%;${thumbStyle};background-size:cover;background-position:center"></div>
+    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.35);opacity:0;transition:opacity 0.2s" class="ep-thumb-overlay">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.6)"/><polygon points="10 8 16 12 10 16 10 8" fill="white"/></svg>
     </div>
-    <div style="font-size:13px;font-weight:700;color:#f0f0f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;margin-bottom:4px">${epTitle}</div>
-    <div style="display:flex;align-items:center;gap:8px">
-      ${durationFmt ? `<span style="font-size:11px;color:#888899">${durationFmt}</span>` : ''}
-      <label class="ep-switch" data-season="${seasonIdx}" data-episode="${ep.num}" aria-label="${watched ? 'Marcar como no visto' : 'Marcar como visto'}" style="display:flex;align-items:center;gap:5px;cursor:pointer" onclick="event.stopPropagation()">
-        <input type="checkbox" ${watched ? 'checked' : ''} style="display:none">
-        <span class="ep-switch-track" style="width:28px;height:16px"></span>
-        <span class="ep-switch-thumb"></span>
-        <span class="ep-switch-label${watched ? ' on' : ''}" id="lbl-${seasonIdx}-${ep.num}" style="font-size:11px;color:${watched ? '#00E676' : '#888899'}">${watched ? 'Visto' : ''}</span>
+    ${watched ? '<div style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.75);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,230,118,0.3)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00e676" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>' : ''}
+    ${hasProgress ? `<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.2)"><div style="height:100%;width:${progressPercent.toFixed(1)}%;background:#00E676"></div></div>` : ''}
+  </div>
+  
+  <!-- Info derecha -->
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+      <span style="font-size:11px;font-weight:800;color:#00E676;text-transform:uppercase;letter-spacing:0.5px">Episodio ${ep.num}</span>
+      ${hasProgress ? `<span style="font-size:10px;font-weight:700;color:#ffc107;background:rgba(255,193,7,0.12);padding:1px 6px;border-radius:10px;margin-left:4px">${savedTimeDisplay}</span>` : ''}
+    </div>
+    <div style="font-size:14px;font-weight:700;color:#f0f0f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;margin-bottom:4px">${epTitle}</div>
+    ${ep.synopsis ? `<div style="font-size:11.5px;color:#9999aa;line-height:1.4;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${ep.synopsis}</div>` : ''}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
+      ${durationFmt ? `<span style="font-size:11px;font-weight:600;color:#777788;background:rgba(255,255,255,0.05);padding:2px 8px;border-radius:4px">${durationFmt}</span>` : '<div></div>'}
+      <label class="ep-switch" data-season="${seasonIdx}" data-episode="${ep.num}" aria-label="${watched ? 'Marcar como no visto' : 'Marcar como visto'}" style="display:flex;align-items:center;gap:6px;cursor:pointer" onclick="event.stopPropagation()">
+        <span class="ep-switch-label${watched ? ' on' : ''}" id="lbl-${seasonIdx}-${ep.num}" style="font-size:11px;font-weight:600;color:${watched ? '#00E676' : '#666677'}">${watched ? 'Visto' : 'Marcar'}</span>
+        <div style="position:relative;width:32px;height:18px;background:${watched ? '#00E676' : 'rgba(255,255,255,0.1)'};border-radius:10px;transition:0.3s">
+          <input type="checkbox" ${watched ? 'checked' : ''} style="display:none">
+          <div style="position:absolute;top:2px;left:${watched ? '16px' : '2px'};width:14px;height:14px;background:#fff;border-radius:50%;transition:0.3s"></div>
+        </div>
       </label>
     </div>
-    ${hasProgress ? `<div style="height:2px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${progressPercent.toFixed(1)}%;background:#00E676;border-radius:2px"></div></div>` : ''}
-  </div>
-  <!-- Miniatura derecha -->
-  <div style="width:96px;height:60px;border-radius:8px;overflow:hidden;flex-shrink:0;position:relative">
-    <div style="width:100%;height:100%;${thumbStyle};background-size:cover;background-position:center"></div>
-    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25);opacity:0;transition:opacity 0.15s" class="ep-thumb-overlay">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.55)"/><polygon points="10 8 16 12 10 16 10 8" fill="white"/></svg>
-    </div>
-    ${watched ? '<div style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00e676" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>' : ''}
   </div>
 </div>`;
 }
