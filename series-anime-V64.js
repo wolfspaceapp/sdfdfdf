@@ -707,22 +707,82 @@ function initRecommendedTab() {
 }
 
 // ── Encontrar animes similares basado en géneros/tags ────
+// ── Obtener DATA con fallbacks ────────────────────────────
+function getRecommendationData() {
+    // 1. Intentar desde window.DATA (cargado por home-anime)
+    if (window.DATA && window.DATA.length > 0) {
+        return window.DATA;
+    }
+    // 2. Intentar desde sessionStorage (BFCache guarda ahí)
+    try {
+        const cached = sessionStorage.getItem('wolfanime_session_data');
+        if (cached) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                // Restaurar también en window.DATA para otros usos
+                window.DATA = parsed;
+                return parsed;
+            }
+        }
+    } catch (e) {
+        // Ignorar errores de parse
+    }
+    return null;
+}
+
+// ── Extraer palabras clave significativas de un título ────
+function extractTitleKeywords(title) {
+    if (!title) return [];
+    // Palabras a ignorar (artículos, preposiciones, etc.)
+    const stopWords = new Set([
+        'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas',
+        'de', 'del', 'en', 'con', 'por', 'para', 'y', 'e', 'o',
+        'a', 'al', 'que', 'es', 'se', 'no', 'su', 'lo', 'le',
+        'the', 'a', 'an', 'of', 'in', 'to', 'and', 'is', 'it',
+        'ga', 'no', 'wa', 'ni', 'wo', 'he', 'mo', 'demo', 'kara',
+        'dakara', 'sore', 'kono', 'sono', 'ano', 'dono'
+    ]);
+    return title.toLowerCase()
+        .replace(/[^a-záéíóúñü0-9\s-]/g, '')
+        .split(/\s+/)
+        .filter(w => w.length > 2 && !stopWords.has(w));
+}
+
+// ── Encontrar contenido similar ───────────────────────────
 function findSimilarAnimes(currentSerie, maxResults = 20) {
-    const allData = window.DATA || [];
-    if (!allData.length) return [];
+    const allData = getRecommendationData();
+    if (!allData || !allData.length) return [];
 
-    const currentTags = (currentSerie.tags || []).map(t => t.trim().toLowerCase());
-    const currentTitle = (currentSerie.title || '').toLowerCase();
-
-    // Si no hay tags, usar categoría
-    if (!currentTags.length && currentSerie.category) {
+    // ── 1. Reunir tags de la serie actual ──
+    const currentTags = [];
+    const rawTags = currentSerie.tags || [];
+    if (Array.isArray(rawTags)) {
+        rawTags.forEach(t => {
+            const trimmed = (typeof t === 'string' ? t : String(t)).trim().toLowerCase();
+            if (trimmed) currentTags.push(trimmed);
+        });
+    } else if (typeof rawTags === 'string') {
+        rawTags.split(/,\s*/).forEach(t => {
+            const trimmed = t.trim().toLowerCase();
+            if (trimmed) currentTags.push(trimmed);
+        });
+    }
+    // También de category
+    if (currentSerie.category) {
         currentSerie.category.split(/,\s*/).forEach(c => {
             const t = c.trim().toLowerCase();
             if (t && !currentTags.includes(t)) currentTags.push(t);
         });
     }
 
-    // Excluir la serie actual y calcular puntuación de similitud
+    // Filtrar tags genéricos
+    const meaningfulTags = currentTags.filter(t => t !== 'h' && !/^\d{4}$/.test(t));
+
+    // ── 2. Extraer keywords del título ──
+    const titleKeywords = extractTitleKeywords(currentSerie.title);
+    const currentTitle = (currentSerie.title || '').toLowerCase();
+
+    // ── 3. Calcular puntuación para cada item ──
     const scored = [];
 
     allData.forEach(item => {
@@ -731,67 +791,126 @@ function findSimilarAnimes(currentSerie, maxResults = 20) {
         if ((item.title || '').toLowerCase() === currentTitle) return;
         if ((item.url || '') === (currentSerie.url || '')) return;
 
+        // Reunir tags del item
         const itemTags = [];
-        if (item.tags) {
-            if (Array.isArray(item.tags)) {
-                item.tags.forEach(t => itemTags.push(t.trim().toLowerCase()));
-            } else if (typeof item.tags === 'string') {
-                item.tags.split(/,\s*/).forEach(t => itemTags.push(t.trim().toLowerCase()));
+        const collectTags = (source) => {
+            if (!source) return;
+            if (Array.isArray(source)) {
+                source.forEach(t => {
+                    const s = (typeof t === 'string' ? t : String(t)).trim().toLowerCase();
+                    if (s && !itemTags.includes(s)) itemTags.push(s);
+                });
+            } else if (typeof source === 'string') {
+                source.split(/,\s*/).forEach(t => {
+                    const s = t.trim().toLowerCase();
+                    if (s && !itemTags.includes(s)) itemTags.push(s);
+                });
             }
-        }
-        if (item.category) {
-            item.category.split(/,\s*/).forEach(c => {
-                const t = c.trim().toLowerCase();
-                if (t && !itemTags.includes(t)) itemTags.push(t);
-            });
-        }
-        if (item.genres) {
-            if (Array.isArray(item.genres)) {
-                item.genres.forEach(g => itemTags.push(g.trim().toLowerCase()));
-            } else if (typeof item.genres === 'string') {
-                item.genres.split(/,\s*/).forEach(g => itemTags.push(g.trim().toLowerCase()));
-            }
-        }
+        };
+        collectTags(item.tags);
+        collectTags(item.category);
+        collectTags(item.genres);
 
-        // Calcular puntuación: cuantos tags coinciden
+        // ── Puntuación por tags exactos ──
         let score = 0;
         const matchedTags = [];
-        currentTags.forEach(tag => {
-            // Ignorar tags genéricos como "H", años, etc.
-            if (tag === 'h' || /^\d{4}$/.test(tag)) return;
+        meaningfulTags.forEach(tag => {
             if (itemTags.includes(tag)) {
-                score++;
+                score += 1.0;
                 matchedTags.push(tag);
             }
         });
 
-        // Bonus si comparte el mismo status
-        if (currentSerie.status && item.status && item.status === currentSerie.status) {
+        // ── Puntuación por tags parciales (substring match) ──
+        // Ej: "shonen" coincide con "shounen", "romance" con "romantic"
+        meaningfulTags.forEach(tag => {
+            if (matchedTags.includes(tag)) return; // ya contado como exacto
+            const hasPartial = itemTags.some(it => {
+                if (it.length < 3 || tag.length < 3) return false;
+                return it.includes(tag) || tag.includes(it) ||
+                       (tag.length > 4 && it.length > 4 &&
+                        (tag.slice(0, 4) === it.slice(0, 4)));
+            });
+            if (hasPartial) {
+                score += 0.5;
+                matchedTags.push(tag);
+            }
+        });
+
+        // ── Puntuación por keywords del título ──
+        const itemTitle = (item.title || '').toLowerCase();
+        let titleMatchCount = 0;
+        titleKeywords.forEach(kw => {
+            if (itemTitle.includes(kw)) {
+                titleMatchCount++;
+                score += 0.3;
+            }
+        });
+
+        // ── Bonus por mismo status ──
+        if (currentSerie.status && item.status &&
+            item.status.toLowerCase() === currentSerie.status.toLowerCase()) {
             score += 0.5;
         }
 
-        // Bonus si es del mismo tipo (serie/película)
-        if (currentSerie.type && item.type && item.type === currentSerie.type) {
+        // ── Bonus por mismo tipo ──
+        if (currentSerie.type && item.type &&
+            item.type.toLowerCase() === currentSerie.type.toLowerCase()) {
             score += 0.3;
+        }
+
+        // ── Bonus por tener poster (mejor calidad visual) ──
+        if (item.poster || item.image) {
+            score += 0.1;
         }
 
         if (score > 0) {
             scored.push({
                 item,
                 score,
-                matchCount: matchedTags.length,
-                totalTags: currentTags.length
+                matchCount: matchedTags.length + titleMatchCount,
+                totalTags: meaningfulTags.length + titleKeywords.length
             });
         }
     });
 
-    // Ordenar por puntuación (mayor primero), luego por matchCount
+    // ── 4. Ordenar por puntuación ──
     scored.sort((a, b) => {
         if (b.score !== a.score) return b.score - a.score;
-        return b.matchCount - a.matchCount;
+        if (b.matchCount !== a.matchCount) return b.matchCount - a.matchCount;
+        // Desempatar: items con poster primero
+        const aHasPoster = a.item.poster || a.item.image ? 1 : 0;
+        const bHasPoster = b.item.poster || b.item.image ? 1 : 0;
+        return bHasPoster - aHasPoster;
     });
 
-    return scored.slice(0, maxResults).map(s => s.item);
+    const results = scored.slice(0, maxResults).map(s => s.item);
+
+    // ── 5. Fallback: si no hay resultados, devolver aleatorios ──
+    if (results.length === 0) {
+        const shuffled = allData
+            .filter(item =>
+                String(item.id) !== String(currentSerie.id) &&
+                (item.title || '').toLowerCase() !== currentTitle
+            )
+            .sort(() => Math.random() - 0.5)
+            .slice(0, maxResults);
+        return shuffled;
+    }
+
+    // Si hay pocos resultados, complementar con aleatorios
+    if (results.length < maxResults) {
+        const existingIds = new Set(results.map(r => String(r.id)));
+        const extras = allData
+            .filter(item => !existingIds.has(String(item.id)) &&
+                String(item.id) !== String(currentSerie.id) &&
+                (item.title || '').toLowerCase() !== currentTitle)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, maxResults - results.length);
+        results.push(...extras);
+    }
+
+    return results;
 }
 
 // ── Renderizar tarjetas de recomendados ──────────────────
@@ -890,11 +1009,36 @@ function loadRecommended() {
             <div>Buscando recomendados...</div>
         </div>`;
 
-    // Usar setTimeout para permitir que el DOM se actualice con el estado de carga
-    setTimeout(() => {
-        const similar = findSimilarAnimes(SERIE);
-        renderRecommendedCards(similar);
-    }, 100);
+    // Intentar cargar recomendados con reintentos si DATA no está disponible
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    function tryLoad() {
+        const data = getRecommendationData();
+        if (data && data.length > 0) {
+            const similar = findSimilarAnimes(SERIE);
+            renderRecommendedCards(similar);
+            return;
+        }
+
+        attempts++;
+        if (attempts < maxAttempts) {
+            // Reintentar cada 500ms (hasta ~5 segundos en total)
+            setTimeout(tryLoad, 500);
+        } else {
+            // Agotados los intentos, mostrar mensaje de error
+            container.innerHTML = `
+                <div class="rec-empty">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 12px;opacity:0.4">
+                        <circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
+                    </svg>
+                    <div>No se encontraron recomendados</div>
+                </div>`;
+        }
+    }
+
+    // Primer intento después de 100ms
+    setTimeout(tryLoad, 100);
 }
 
 // ── Helper: format duration seconds → "Xm" or "Xh Ym" ────
