@@ -90,6 +90,18 @@ button:active,
   }
 }
 
+/* Extender protección de fondo blanco a todos los elementos interactivos en series */
+.ep-card-compact, .continue-btn, .play-btn, .season-dropdown-btn,
+.season-option, .vp-picker-opt, .action-btn, .nav-btn,
+#btn-close-player, #btn-reproducir-serie, .back-btn, .cfg-btn,
+#season-modal-trigger, #btn-sort-episodes, .season-option-modal,
+.ep-tab-btn, .spb-btn, .spb-resume-btn, .spb-start-btn,
+#btn-prev, #btn-next, #btn-report, #btn-cast, #btn-lang, #btn-srv,
+#vp-picker-close {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
 *,
 *::before,
 *::after {
@@ -796,9 +808,9 @@ body {
 #player-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   padding: 0 16px;
-  height: 52px;
+  height: 56px;
   flex-shrink: 0;
   background: rgba(10, 10, 10, 0.95);
   backdrop-filter: blur(16px);
@@ -1048,34 +1060,118 @@ body {
   height: 100%;
 }
 
-/* Loading overlay */
+/* Loading overlay - Rediseñado */
 .vp-loading {
   position: absolute;
   inset: 0;
   z-index: 10;
-  background: #000;
+  background: radial-gradient(ellipse at center, #0a0a0f 0%, #000 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 24px;
   pointer-events: none;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
 .vp-loading.done {
   opacity: 0;
+  transform: scale(1.05);
 }
 
-.vp-loading-ring {
-  width: 48px;
-  height: 48px;
+/* Spinner principal con arco animado */
+.vp-loading-spinner {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vp-loading-arc {
+  width: 64px;
+  height: 64px;
+  color: var(--accent);
+  animation: vp-spin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transform-origin: center;
+}
+
+.vp-loading-arc circle {
+  stroke-dasharray: 125;
+  stroke-dashoffset: 100;
+  animation: vp-arc-dash 1.5s ease-in-out infinite;
+}
+
+.vp-loading-pulse {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.3;
+  animation: vp-pulse 1.5s ease-in-out infinite;
+}
+
+/* Contenido textual */
+.vp-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.vp-loading-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.3px;
 }
 
 .vp-loading-text {
-  font-size: 13px;
-  color: var(--text2);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
   font-weight: 500;
+}
+
+/* Barra de progreso animada */
+.vp-loading-bar {
+  width: 120px;
+  height: 3px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.vp-loading-bar-fill {
+  height: 100%;
+  width: 30%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent), #69ffb4);
+  animation: vp-bar-load 2s ease-in-out infinite;
+}
+
+@keyframes vp-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes vp-arc-dash {
+  0% { stroke-dashoffset: 100; }
+  50% { stroke-dashoffset: 30; }
+  100% { stroke-dashoffset: 100; }
+}
+
+@keyframes vp-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.8); opacity: 0.1; }
+}
+
+@keyframes vp-bar-load {
+  0% { transform: translateX(-100%); width: 30%; }
+  50% { transform: translateX(0%); width: 60%; }
+  100% { transform: translateX(300%); width: 30%; }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -2371,8 +2467,8 @@ body {
   }
 
   #player-header {
-    height: 52px;
-    padding: 0 12px;
+    height: 56px;
+    padding: 0 10px;
     gap: 8px;
   }
 
@@ -2404,15 +2500,17 @@ body {
     font-size: 12px;
     gap: 0;
     border-radius: 50%;
-    width: 38px;
-    height: 38px;
+    width: 42px;
+    height: 42px;
     justify-content: center;
     flex-shrink: 0;
+    min-width: 42px;
+    min-height: 42px;
   }
 
   .action-btn svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
   }
 
   .action-btn span {
@@ -2421,21 +2519,24 @@ body {
 
   #player-ep-title {
     font-size: 12px;
-    max-width: 120px;
+    max-width: 140px;
+    margin: 0 2px;
   }
 
   #btn-close-player {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
   }
 
   #btn-close-player svg {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
   }
 
   .player-actions {
-    gap: 6px;
+    gap: 4px;
   }
 
   /* El contenedor del video debe ocupar el espacio disponible */
@@ -3720,9 +3821,9 @@ svg {
    ══════════════════════════════════════════════════════════ */
 
 #vp-custom-picker {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 99999;
   display: flex;
   align-items: center;
   justify-content: center;
