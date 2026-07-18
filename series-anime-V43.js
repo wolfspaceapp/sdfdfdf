@@ -664,6 +664,70 @@ function renderEpisodeCard(ep, seasonIdx, watchedMap, resumeData) {
 // ── Sort state ────────────────────────────────────────────
 let episodeSortAsc = true; // true = ascendente (1→N), false = descendente (N→1)
 
+// ── Sort Modal ────────────────────────────────────────────
+function openSortModal() {
+    const existing = document.getElementById('ep-sort-modal-overlay');
+    if (existing) existing.remove();
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'ep-sort-modal-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity 0.2s';
+    
+    const sheet = document.createElement('div');
+    sheet.style.cssText = 'background:#161b22;width:100%;max-width:400px;border-radius:20px 20px 0 0;padding:20px 20px 28px;transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1);max-height:70vh;overflow-y:auto';
+    
+    const options = [
+        { value: 'asc', label: 'Ascendente (1 → N)', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>' },
+        { value: 'desc', label: 'Descendente (N → 1)', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>' }
+    ];
+    
+    sheet.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <span style="font-size:16px;font-weight:800;color:#fff">Ordenar episodios</span>
+            <button id="ep-sort-close" style="background:rgba(255,255,255,0.08);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+            ${options.map(o => `
+                <button class="ep-sort-option" data-value="${o.value}" style="display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;background:${(o.value === 'asc' && episodeSortAsc) || (o.value === 'desc' && !episodeSortAsc) ? 'rgba(0,230,118,0.1)' : 'rgba(255,255,255,0.04)'};border:1px solid ${(o.value === 'asc' && episodeSortAsc) || (o.value === 'desc' && !episodeSortAsc) ? 'rgba(0,230,118,0.3)' : 'transparent'};border-radius:12px;color:${(o.value === 'asc' && episodeSortAsc) || (o.value === 'desc' && !episodeSortAsc) ? '#00E676' : '#e0e0e0'};font-size:14px;font-weight:600;cursor:pointer;text-align:left;font-family:inherit;transition:all 0.2s">
+                    ${o.icon}
+                    <span>${o.label}</span>
+                    ${((o.value === 'asc' && episodeSortAsc) || (o.value === 'desc' && !episodeSortAsc)) ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00E676" stroke-width="2.5" style="margin-left:auto"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                </button>
+            `).join('')}
+        </div>
+    `;
+    
+    overlay.appendChild(sheet);
+    document.body.appendChild(overlay);
+    
+    requestAnimationFrame(() => {
+        overlay.style.opacity = '1';
+        sheet.style.transform = 'translateY(0)';
+    });
+    
+    function closeSortModal() {
+        overlay.style.opacity = '0';
+        sheet.style.transform = 'translateY(100%)';
+        setTimeout(() => overlay.remove(), 280);
+    }
+    
+    document.getElementById('ep-sort-close').addEventListener('click', closeSortModal);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeSortModal(); });
+    
+    overlay.querySelectorAll('.ep-sort-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const val = btn.dataset.value;
+            episodeSortAsc = val === 'asc';
+            const sortLabel = document.getElementById('btn-sort-label');
+            if (sortLabel) sortLabel.textContent = episodeSortAsc ? 'A–Z' : 'Z–A';
+            closeSortModal();
+            renderEpisodes(true);
+        });
+    });
+}
+
 function renderEpisodes(animate) {
     const map = getWatchedMap();
     const list = $('episodes-list');
@@ -679,22 +743,17 @@ function renderEpisodes(animate) {
     (SERIE.seasons || []).forEach(function(s) { if (s && s.episodes) totalEps += s.episodes.length; });
     const metaEl = document.getElementById('serie-detail-meta');
     if (metaEl && totalEps > 0) {
-        // Actualizar solo el stat de episodios si el contenedor ya fue populado
         const epStatDiv = metaEl.querySelector('[data-stat="eps"]');
         if (epStatDiv) epStatDiv.querySelector('.stat-val').textContent = totalEps;
     }
 
     // ── Wiring del botón ordenar (una sola vez) ───────────
     const sortBtn = document.getElementById('btn-sort-episodes');
-    const sortLabel = document.getElementById('btn-sort-label');
     if (sortBtn && !sortBtn._sortWired) {
         sortBtn._sortWired = true;
-        sortBtn.addEventListener('click', function() {
-            episodeSortAsc = !episodeSortAsc;
-            if (sortLabel) sortLabel.textContent = episodeSortAsc ? 'A–Z' : 'Z–A';
-            sortBtn.style.color = episodeSortAsc ? '#aaaabc' : '#00E676';
-            sortBtn.style.borderColor = episodeSortAsc ? 'rgba(255,255,255,0.1)' : 'rgba(0,230,118,0.4)';
-            renderEpisodes(true);
+        sortBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            openSortModal();
         });
     }
     
@@ -702,51 +761,85 @@ function renderEpisodes(animate) {
     // Aplicar orden
     if (!episodeSortAsc) eps = eps.slice().reverse();
 
+    // ── Skeleton loading: mostrar esqueletos mientras se renderiza ──
+    // Mostrar skeletons inmediatamente para feedback visual instantáneo
+    const skeletonCount = Math.min(eps.length, 12);
+    let skeletonHTML = '';
+    for (let i = 0; i < skeletonCount; i++) {
+        skeletonHTML += `
+            <div class="ep-skeleton">
+                <div class="ep-skeleton-thumb"></div>
+                <div class="ep-skeleton-body">
+                    <div class="ep-skeleton-line"></div>
+                    <div class="ep-skeleton-line"></div>
+                    <div class="ep-skeleton-line"></div>
+                </div>
+            </div>`;
+    }
+    list.innerHTML = skeletonHTML;
+
     // Obtener el target del Smart Play para destacar el episodio con progreso activo
     const resumeData = getSmartPlayTarget(SERIE, localStorage);
 
-    list.innerHTML = eps.map(ep => renderEpisodeCard(ep, activeSeason, map, resumeData)).join('');
+    // Render real con pequeño retraso para que se vea la animación skeleton
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            list.innerHTML = eps.map(ep => renderEpisodeCard(ep, activeSeason, map, resumeData)).join('');
 
-    // ── Event delegation: card click → play ───────────────
-    list.querySelectorAll('.ep-card-compact').forEach(c =>
-        c.addEventListener('click', e => {
-            if (e.target.closest('.ep-compact-switch')) return;
-            const s = +c.dataset.season, epNum = +c.dataset.episode;
-            playEpisode(s, epNum);
-        })
-    );
+            // ── Event delegation: card click → play ───────────────
+            list.querySelectorAll('.ep-card-compact').forEach(c =>
+                c.addEventListener('click', e => {
+                    if (e.target.closest('.ep-compact-switch')) return;
+                    const s = +c.dataset.season, epNum = +c.dataset.episode;
+                    playEpisode(s, epNum);
+                })
+            );
 
-    // ── Event delegation: watched toggle ──────────────────
-    list.querySelectorAll('.ep-compact-switch').forEach(sw =>
-        sw.addEventListener('change', () => {
-            const s = +sw.dataset.season, ep = +sw.dataset.episode;
-            const val = sw.querySelector('input').checked;
-            setWatched(s, ep, val);
-            const lbl = $(`lbl-${s}-${ep}`);
-            if (lbl) { lbl.textContent = val ? 'Visto' : 'No visto'; lbl.classList.toggle('on', val); }
-            // Update watched badge immediately without full re-render
-            const card = list.querySelector(`.ep-card-compact[data-season="${s}"][data-episode="${ep}"]`);
-            if (card) {
-                const badge = card.querySelector('.ep-compact-watched-badge');
-                if (badge) {
-                    if (val) {
-                        badge.style.display = '';
-                    } else {
-                        badge.style.display = 'none';
+            // ── Event delegation: watched toggle (FIXED) ──────────
+            list.querySelectorAll('.ep-compact-switch').forEach(sw => {
+                // Remove old listeners to prevent duplicates
+                const newSw = sw.cloneNode(true);
+                sw.parentNode.replaceChild(newSw, sw);
+                
+                newSw.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    
+                    const s = +this.dataset.season;
+                    const ep = +this.dataset.episode;
+                    const input = this.querySelector('input');
+                    const track = this.querySelector('.ep-compact-switch-track');
+                    const lbl = document.getElementById(`lbl-${s}-${ep}`);
+                    
+                    const newVal = !input.checked;
+                    input.checked = newVal;
+                    
+                    setWatched(s, ep, newVal);
+                    
+                    if (lbl) { lbl.textContent = newVal ? 'Visto' : 'Marcar'; lbl.classList.toggle('on', newVal); }
+                    if (track) track.classList.toggle('on', newVal);
+                    
+                    // Update watched badge immediately
+                    const card = list.querySelector(`.ep-card-compact[data-season="${s}"][data-episode="${ep}"]`);
+                    if (card) {
+                        const badge = card.querySelector('.ep-compact-watched-badge');
+                        if (badge) {
+                            badge.style.display = newVal ? '' : 'none';
+                        }
+                        card.classList.toggle('watched', newVal);
                     }
-                }
-                card.classList.toggle('watched', val);
-            }
-            // Update label aria
-            sw.setAttribute('aria-label', val ? 'Marcar como no visto' : 'Marcar como visto');
-        })
-    );
+                    
+                    this.setAttribute('aria-label', newVal ? 'Marcar como no visto' : 'Marcar como visto');
+                });
+            });
 
-    if (animate) {
-        list.classList.remove('season-change');
-        void list.offsetWidth;
-        list.classList.add('season-change');
-    }
+            if (animate) {
+                list.classList.remove('season-change');
+                void list.offsetWidth;
+                list.classList.add('season-change');
+            }
+        });
+    });
 }
 
 // ── Reproductor ───────────────────────────────────────────
@@ -2480,10 +2573,81 @@ if (castBtn) {
     });
 }
 
+// ── Smart Header: ocultar/mostrar título en header según scroll ──
+(function() {
+    const header = document.getElementById('serie-header');
+    const headerTitle = document.getElementById('header-title');
+    if (!header || !headerTitle) return;
+
+    // Elemento de referencia: el título principal de la serie en el contenido
+    let titleRef = document.querySelector('.serie-detail-info h1') || document.querySelector('[data-serie-title]');
+    
+    // Si no hay un h1, buscar cualquier elemento que contenga el título
+    if (!titleRef) {
+        // Crear un elemento oculto como referencia cerca del inicio del contenido
+        const detailSection = document.getElementById('serie-detail-section');
+        if (detailSection) {
+            // Usar el primer elemento significativo como referencia
+            titleRef = detailSection.querySelector('h1, h2, .serie-title, [class*="title"]');
+        }
+    }
+
+    // Si aún no hay referencia, usar un enfoque basado en scroll position
+    let lastScrollY = 0;
+    let headerVisible = true;
+    let ticking = false;
+
+    const checkHeader = () => {
+        const scrollY = window.scrollY;
+        
+        // Si el header está oculto por el player, no hacer nada
+        if (header.style.display === 'none') return;
+
+        // Determinar si el título principal es visible
+        // Usamos un umbral: si scrolleamos más de 200px, el título ya no es visible
+        const titleVisible = scrollY < 200;
+        
+        if (titleVisible && !headerVisible) {
+            // El título es visible en el contenido → ocultar header title
+            headerTitle.style.opacity = '0';
+            headerVisible = true;
+        } else if (!titleVisible && headerVisible) {
+            // El título ya no es visible → mostrar header title
+            headerTitle.style.opacity = '1';
+            headerVisible = false;
+        }
+    };
+
+    // Inicializar estado
+    headerTitle.style.opacity = '0';
+    headerTitle.style.transition = 'opacity 0.3s ease';
+
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            requestAnimationFrame(() => {
+                checkHeader();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }, { passive: true });
+
+    // Re-evaluar después de renderizar episodios
+    const origRenderEpisodes = window.renderEpisodes;
+    // No reemplazar, solo observar
+    const observer = new MutationObserver(() => {
+        if (!titleRef) {
+            titleRef = document.querySelector('.serie-detail-info h1') || document.querySelector('[data-serie-title]');
+        }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+})();
+
 // ── Inicialización ────────────────────────────────────────
 const isInitMovie = SERIE.type === 'movie' || (SERIE.seasons?.[0]?.episodes?.[0]?.type === 'movie');
 
 if (isInitMovie) {
+
     // Es una película: si hay sección de detalles activa, no autoplay
     if (!window._serieDetailShown) {
         $('player-section').style.display = 'flex';
