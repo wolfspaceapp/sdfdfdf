@@ -1174,8 +1174,8 @@ function openSortModal() {
     
     const sheet = document.createElement('div');
     const sheetStyle = isPC
-        ? 'background:#000;width:100%;max-width:400px;border-radius:16px;padding:20px 20px 28px;transform:scale(0.9);transition:transform 0.25s cubic-bezier(0.32,0.72,0,1);max-height:70vh;overflow-y:auto'
-        : 'background:#000;width:100%;max-width:400px;border-radius:20px 20px 0 0;padding:20px 20px 28px;transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1);max-height:70vh;overflow-y:auto';
+        ? 'background:#111;width:100%;max-width:400px;border-radius:16px;padding:20px 20px 28px;transform:scale(0.9);transition:transform 0.25s cubic-bezier(0.32,0.72,0,1);max-height:70vh;overflow-y:auto'
+        : 'background:#111;width:100%;max-width:400px;border-radius:20px 20px 0 0;padding:20px 20px 28px;transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1);max-height:70vh;overflow-y:auto';
     sheet.style.cssText = sheetStyle;
     
     const options = [
