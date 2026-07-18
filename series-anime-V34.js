@@ -196,10 +196,15 @@ function getSmartPlayTarget(serie, storage) {
     }
 
     // Sin progreso → primer episodio de la primera temporada
-    return {
-        seasonIdx: 0,
-        epNum: serie.seasons[0].episodes[0].num
-    };
+    if (serie.seasons.length > 0 && serie.seasons[0].episodes && serie.seasons[0].episodes.length > 0) {
+        return {
+            seasonIdx: 0,
+            epNum: serie.seasons[0].episodes[0].num
+        };
+    }
+    
+    // Fallback absoluto si la estructura está vacía
+    return { seasonIdx: 0, epNum: 1 };
 }
 
 /**
@@ -218,7 +223,9 @@ function updateSmartPlayLabel() {
     // Comprobar si existe progreso real para cualquier episodio:
     //   a) el target no apunta al primer episodio de la primera temporada, o
     //   b) hay tiempo guardado para el primer episodio (target es el 1º pero con progreso)
-    const firstEp = SERIE.seasons[0].episodes[0];
+    const firstEp = (SERIE.seasons && SERIE.seasons.length > 0 && SERIE.seasons[0].episodes && SERIE.seasons[0].episodes.length > 0)
+        ? SERIE.seasons[0].episodes[0]
+        : { num: 1, langs: [] };
     const hasProgressElsewhere = target.epNum !== firstEp.num || target.seasonIdx !== 0;
 
     const firstLangName = (firstEp.langs && firstEp.langs[0] && firstEp.langs[0].name)
@@ -453,8 +460,8 @@ function renderTabs() {
     const tabs = $('embedded-seasons-container');
     if (!tabs) return;
 
-    // Suprimir el dropdown si solo hay una temporada
-    if (SERIE.seasons.length === 1) {
+    // Suprimir el dropdown si solo hay una temporada o si no hay temporadas
+    if (!SERIE.seasons || SERIE.seasons.length <= 1) {
         tabs.innerHTML = '';
         return;
     }
@@ -597,9 +604,15 @@ function renderEpisodeCard(ep, seasonIdx, watchedMap, resumeData) {
 
 function renderEpisodes(animate) {
     const map = getWatchedMap();
-    const eps = SERIE.seasons[activeSeason].episodes;
     const list = $('episodes-list');
     if (!list) return;
+    
+    if (!SERIE.seasons || !SERIE.seasons[activeSeason] || !SERIE.seasons[activeSeason].episodes) {
+        list.innerHTML = '';
+        return;
+    }
+    
+    const eps = SERIE.seasons[activeSeason].episodes;
 
     // Obtener el target del Smart Play para destacar el episodio con progreso activo
     const resumeData = getSmartPlayTarget(SERIE, localStorage);
