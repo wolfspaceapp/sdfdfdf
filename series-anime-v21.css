@@ -1610,7 +1610,7 @@ body {
 @media (min-width: 1024px) {
   /* ── Backdrop Cinematográfico ── */
   #serie-detail-backdrop {
-    height: 440px !important;
+    height: 360px !important;
   }
   #serie-detail-backdrop::after {
     content: '';
@@ -1648,8 +1648,8 @@ body {
   /* ── Hero: Poster + Info en desktop — cinematic layout ── */
   #serie-detail-section > div:not(#serie-detail-backdrop) {
     /* The wrapper div with padding/margin-top */
-    padding: 60px 32px 32px !important;
-    margin-top: -120px !important;
+    padding: 48px 28px 28px !important;
+    margin-top: -100px !important;
     position: relative;
     z-index: 2;
     animation: pc-hero-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
@@ -1658,17 +1658,17 @@ body {
   /* Hero row: poster + info side by side */
   #serie-detail-section > div > div[style*="display: flex"][style*="align-items: flex-end"] {
     display: flex !important;
-    gap: 28px !important;
+    gap: 24px !important;
     align-items: flex-end !important;
-    margin-bottom: 20px !important;
+    margin-bottom: 16px !important;
   }
 
   /* Poster */
   #serie-detail-poster {
-    width: 260px !important;
-    min-width: 260px !important;
-    height: 370px !important;
-    border-radius: 16px !important;
+    width: 220px !important;
+    min-width: 220px !important;
+    height: 310px !important;
+    border-radius: 14px !important;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.06);
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
     border: none !important;
@@ -1685,10 +1685,10 @@ body {
 
   /* Title */
   #serie-detail-title {
-    font-size: 32px !important;
+    font-size: 28px !important;
     font-weight: 900 !important;
     line-height: 1.15 !important;
-    margin-bottom: 10px !important;
+    margin-bottom: 8px !important;
     letter-spacing: -0.5px;
     text-shadow: 0 2px 20px rgba(0,0,0,0.3);
     background: linear-gradient(135deg, #fff 40%, rgba(0,230,118,0.7) 100%);
@@ -1699,28 +1699,28 @@ body {
 
   /* Genres */
   #serie-detail-genres {
-    font-size: 13px !important;
+    font-size: 12px !important;
     line-height: 1.5 !important;
   }
 
   /* Actions row (play button) */
   #serie-detail-section > div > div[style*="display: flex"][style*="gap: 10px"] {
-    margin-bottom: 20px !important;
+    margin-bottom: 16px !important;
   }
 
   /* Meta stats row */
   #serie-detail-meta {
-    padding: 12px 0 !important;
-    margin-top: 6px !important;
-    gap: 14px !important;
+    padding: 10px 0 !important;
+    margin-top: 4px !important;
+    gap: 12px !important;
   }
 
   /* ── Columna derecha: Episodios en sidebar scrollable ── */
   #embedded-episodes-section {
-    width: 400px;
-    min-width: 400px;
-    max-width: 400px;
-    padding: 20px 20px 20px 0;
+    width: 360px;
+    min-width: 360px;
+    max-width: 360px;
+    padding: 16px 16px 16px 0;
     position: sticky;
     top: 0;
     align-self: flex-start;
@@ -1796,8 +1796,8 @@ body {
   }
 
   .ep-card-compact {
-    padding: 10px 14px;
-    gap: 12px;
+    padding: 8px 12px;
+    gap: 10px;
     border-radius: 10px;
     background: rgba(255,255,255,0.02);
     border: 1px solid rgba(255,255,255,0.04);
@@ -1819,9 +1819,9 @@ body {
   }
 
   .ep-compact-thumb {
-    width: 120px;
-    min-width: 120px;
-    height: 70px;
+    width: 100px;
+    min-width: 100px;
+    height: 60px;
     border-radius: 8px;
     overflow: hidden;
     transition: transform 0.2s ease;
@@ -1877,8 +1877,8 @@ body {
 
   /* ── Smart Play Button en desktop ── */
   #btn-reproducir-serie {
-    min-height: 56px;
-    border-radius: 14px !important;
+    min-height: 48px;
+    border-radius: 12px !important;
     transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
                 box-shadow 0.3s ease !important;
   }
@@ -1891,30 +1891,30 @@ body {
   }
 
   .spb-continue {
-    padding: 12px 18px;
-    gap: 14px;
+    padding: 10px 16px;
+    gap: 12px;
   }
   .spb-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
   }
   .spb-label {
-    font-size: 14px;
-  }
-  .spb-meta {
     font-size: 13px;
   }
-  .spb-time {
+  .spb-meta {
     font-size: 12px;
   }
+  .spb-time {
+    font-size: 11px;
+  }
   .spb-progress {
-    max-width: 120px;
+    max-width: 100px;
     height: 4px;
   }
   .spb-arrow {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     transition: transform 0.25s ease, background 0.25s ease;
   }
   #btn-reproducir-serie:hover .spb-arrow {
@@ -1923,37 +1923,37 @@ body {
   }
 
   .spb-play {
-    padding: 14px 24px;
-    gap: 12px;
+    padding: 12px 20px;
+    gap: 10px;
   }
   .spb-play-text {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   /* Header en desktop */
   #serie-header {
-    height: 64px;
-    padding: 0 32px;
+    height: 56px;
+    padding: 0 28px;
   }
 
   .header-title {
-    font-size: 15px;
+    font-size: 14px;
   }
 
   /* Player en desktop */
   #player-header {
-    height: 56px;
-    padding: 0 24px;
+    height: 50px;
+    padding: 0 20px;
   }
 
   #player-footer {
-    height: 56px;
-    padding: 0 24px;
+    height: 50px;
+    padding: 0 20px;
   }
 
   .nav-btn {
-    padding: 8px 20px;
-    font-size: 13px;
+    padding: 7px 16px;
+    font-size: 12px;
     border-radius: 10px;
     transition: background 0.2s ease, transform 0.2s ease;
   }
@@ -1963,8 +1963,8 @@ body {
   }
 
   .action-btn {
-    padding: 8px 16px;
-    font-size: 13px;
+    padding: 7px 14px;
+    font-size: 12px;
     border-radius: 10px;
     transition: background 0.2s ease, transform 0.2s ease;
   }
@@ -1974,7 +1974,7 @@ body {
   }
 
   #player-ep-title {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   /* ── Scrollbar personalizada para desktop ── */
@@ -2038,13 +2038,14 @@ body {
     height: 18px;
   }
   .nav-btn {
-    padding: 6px 12px;
-    font-size: 11px;
-    gap: 4px;
+    padding: 7px 14px;
+    font-size: 12px;
+    gap: 6px;
+    border-radius: 10px;
   }
   .nav-btn svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
   }
 
   .serie-detail-hero {
@@ -2349,7 +2350,7 @@ body {
 
   /* Ajustes para el picker en móvil */
   #vp-custom-picker > div {
-    width: min(380px, calc(100% - 24px)) !important;
+    width: min(360px, calc(100% - 24px)) !important;
     max-height: 85vh !important;
   }
 
@@ -2372,13 +2373,13 @@ body {
 /* Orientación landscape en móviles: player ocupa toda la altura */
 @media (orientation: landscape) and (max-height: 500px) {
   #player-header {
-    height: 42px;
+    height: 44px;
     padding: 0 10px;
     gap: 6px;
   }
 
   #player-footer {
-    height: 42px;
+    height: 44px;
     padding: 0 10px;
     gap: 6px;
   }
@@ -2388,8 +2389,8 @@ body {
   }
 
   #btn-close-player {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
   }
 
   #btn-close-player svg {
@@ -2398,14 +2399,15 @@ body {
   }
 
   .nav-btn {
-    padding: 6px 12px;
-    font-size: 11px;
-    gap: 5px;
+    padding: 7px 14px;
+    font-size: 12px;
+    gap: 6px;
+    border-radius: 10px;
   }
 
   .nav-btn svg {
-    width: 15px;
-    height: 15px;
+    width: 16px;
+    height: 16px;
   }
 
   .action-btn {
@@ -2485,8 +2487,9 @@ body {
   }
 
   #player-footer {
-    height: 48px;
+    height: 44px;
     padding: 0 10px;
+    gap: 6px;
   }
 
   #player-ep-title {
@@ -2505,9 +2508,10 @@ body {
   }
 
   .nav-btn {
-    padding: 6px 12px;
+    padding: 5px 10px;
     font-size: 12px;
-    gap: 6px;
+    gap: 5px;
+    border-radius: 10px;
   }
 
   .nav-btn svg {
@@ -2658,12 +2662,12 @@ body {
 /* Landscape en tablets pequeñas */
 @media (orientation: landscape) and (min-height: 501px) and (max-height: 700px) {
   #player-header {
-    height: 44px;
+    height: 46px;
     padding: 0 12px;
   }
 
   #player-footer {
-    height: 44px;
+    height: 46px;
     padding: 0 12px;
   }
 
@@ -2672,13 +2676,14 @@ body {
   }
 
   .nav-btn {
-    padding: 5px 12px;
-    font-size: 11px;
+    padding: 7px 14px;
+    font-size: 12px;
+    border-radius: 10px;
   }
 
   .action-btn {
-    padding: 5px 10px;
-    font-size: 11px;
+    padding: 6px 12px;
+    font-size: 12px;
   }
 
   .vp-loading-ring {
@@ -2703,7 +2708,7 @@ body {
   }
 
   #player-footer {
-    height: 42px;
+    height: 40px;
     padding: 0 8px;
     gap: 4px;
   }
@@ -2720,8 +2725,14 @@ body {
 
   .nav-btn {
     padding: 5px 8px;
-    font-size: 10px;
-    gap: 3px;
+    font-size: 11px;
+    gap: 4px;
+    border-radius: 8px;
+  }
+
+  .nav-btn svg {
+    width: 14px;
+    height: 14px;
   }
 
   .action-btn {
@@ -2870,6 +2881,47 @@ body {
 
 @media (min-width: 1440px) {
   .serie-detail-hero {
+    padding: 80px 48px 40px;
+    gap: 40px;
+    max-width: 1400px;
+  }
+
+  .serie-detail-poster {
+    width: 320px;
+    min-width: 320px;
+  }
+
+  .serie-detail-info h1 {
+    font-size: 36px;
+  }
+
+  .serie-detail-synopsis {
+    font-size: 15px;
+    max-width: 700px;
+  }
+
+  .episodes-list {
+    padding: 16px 48px 40px;
+    max-width: 1400px;
+  }
+
+  .ep-compact-thumb {
+    width: 160px;
+    min-width: 160px;
+    height: 100px;
+  }
+
+  .season-dropdown {
+    margin: 0 48px 16px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE - PANTALLAS 4K (≥ 2560px)
+   ══════════════════════════════════════════════════════════ */
+
+@media (min-width: 2560px) {
+  .serie-detail-hero {
     padding: 100px 64px 48px;
     gap: 56px;
     max-width: 1600px;
@@ -2881,7 +2933,7 @@ body {
   }
 
   .serie-detail-info h1 {
-    font-size: 42px;
+    font-size: 44px;
   }
 
   .serie-detail-synopsis {
@@ -2890,7 +2942,7 @@ body {
   }
 
   .episodes-list {
-    padding: 16px 64px 48px;
+    padding: 20px 64px 48px;
     max-width: 1600px;
   }
 
@@ -2900,66 +2952,25 @@ body {
     height: 120px;
   }
 
-  .season-dropdown {
-    margin: 0 64px 16px;
-  }
-}
-
-/* ══════════════════════════════════════════════════════════
-   RESPONSIVE - PANTALLAS 4K (≥ 2560px)
-   ══════════════════════════════════════════════════════════ */
-
-@media (min-width: 2560px) {
-  .serie-detail-hero {
-    padding: 120px 80px 64px;
-    gap: 72px;
-    max-width: 1800px;
-  }
-
-  .serie-detail-poster {
-    width: 440px;
-    min-width: 440px;
-  }
-
-  .serie-detail-info h1 {
-    font-size: 52px;
-  }
-
-  .serie-detail-synopsis {
-    font-size: 18px;
-    max-width: 900px;
-  }
-
-  .episodes-list {
-    padding: 24px 80px 64px;
-    max-width: 1800px;
-  }
-
-  .ep-compact-thumb {
-    width: 240px;
-    min-width: 240px;
-    height: 144px;
-  }
-
   .ep-compact-title {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .ep-compact-synopsis {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .season-dropdown {
-    margin: 0 80px 24px;
+    margin: 0 64px 20px;
   }
 
   #serie-header {
-    height: 72px;
-    padding: 0 48px;
+    height: 64px;
+    padding: 0 36px;
   }
 
   .header-title {
-    font-size: 17px;
+    font-size: 15px;
   }
 }
 
@@ -3625,8 +3636,8 @@ svg {
   background: rgba(16, 16, 16, 0.98);
   border: 1.5px solid rgba(255, 255, 255, 0.08);
   border-radius: 18px;
-  width: min(320px, calc(100% - 16px));
-  max-height: 80vh;
+  width: min(360px, calc(100% - 24px));
+  max-height: 75vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -3658,6 +3669,7 @@ svg {
   gap: 4px;
   overflow-y: auto;
   flex: 1;
+  scrollbar-gutter: stable;
 }
 
 .vp-picker-opt {
@@ -3698,13 +3710,18 @@ svg {
 }
 
 .vp-picker-opt.active::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
+  content: '✓';
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--accent);
   flex-shrink: 0;
-  box-shadow: 0 0 6px rgba(0, 230, 118, 0.6);
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 230, 118, 0.15);
+  border-radius: 50%;
 }
 
 .vp-picker-opt svg {
