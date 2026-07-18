@@ -878,10 +878,17 @@ function closePlayer() {
         return;
     }
 
-    // Si hay episodio cargado, volver a la lista de episodios
+    // Si hay episodio cargado, volver a la lista de episodios y detalles
     $('player-section').style.display = 'none';
-    $('episodes-list').style.display = '';
-    document.querySelector('.seasons-wrap').style.display = 'block';
+    const detailSection = document.getElementById('serie-detail-section');
+    if (detailSection) detailSection.style.display = 'block';
+    
+    const epListEl = $('episodes-list');
+    if (epListEl) epListEl.style.display = '';
+    
+    const seasonsWrapEl = document.querySelector('.seasons-wrap');
+    if (seasonsWrapEl) seasonsWrapEl.style.display = '';
+    
     const sHeader = $('serie-header');
     if (sHeader) sHeader.style.display = 'flex';
 
