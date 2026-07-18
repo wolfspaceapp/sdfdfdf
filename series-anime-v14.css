@@ -69,13 +69,11 @@ button:active,
   .btn:focus,
   [role="button"]:focus {
     background: inherit !important;
-    color: inherit !important;
   }
 
   /* Los tabs deben mantener su color inline (verde cuando activo) */
   .ep-tab-btn:focus,
   .ep-tab-btn:focus-visible {
-    color: unset !important;
     background: none !important;
     outline: none;
   }
@@ -1964,6 +1962,53 @@ body {
    ══════════════════════════════════════════════════════════ */
 
 @media (min-width: 768px) and (max-width: 1023px) {
+  /* Player header compacto en tablet */
+  #player-header {
+    height: 48px;
+    padding: 0 12px;
+    gap: 6px;
+  }
+  #player-footer {
+    height: 48px;
+    padding: 0 12px;
+    gap: 6px;
+  }
+  .action-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+    gap: 4px;
+  }
+  .action-btn svg {
+    width: 15px;
+    height: 15px;
+  }
+  .action-btn span {
+    font-size: 11px;
+  }
+  .player-actions {
+    gap: 4px;
+  }
+  #player-ep-title {
+    font-size: 12px;
+  }
+  #btn-close-player {
+    width: 34px;
+    height: 34px;
+  }
+  #btn-close-player svg {
+    width: 18px;
+    height: 18px;
+  }
+  .nav-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+    gap: 4px;
+  }
+  .nav-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
   .serie-detail-hero {
     display: flex;
     gap: 24px;
@@ -2081,10 +2126,10 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════
-   RESPONSIVE - MÓVIL (≤ 480px)
+   RESPONSIVE - MÓVIL Y TABLET PEQUEÑA (≤ 767px)
    ══════════════════════════════════════════════════════════ */
 
-@media (max-width: 480px) {
+@media (max-width: 767px) {
   #serie-header {
     height: 50px;
     padding: 0 12px;
