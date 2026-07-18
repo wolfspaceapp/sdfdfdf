@@ -1662,7 +1662,7 @@ body {
     gap: 0;
     align-items: flex-start;
     max-width: 100%;
-    padding: 0;
+    padding: 56px 0 0 0;
   }
 
   /* Columna izquierda: Hero con info de la serie */
@@ -1739,6 +1739,7 @@ body {
   /* Play button - al lado del poster, en la misma fila del hero */
   #serie-detail-section > div > div[style*="display: flex"][style*="gap: 10px"] {
     margin-bottom: 0 !important;
+    margin-top: 12px !important;
     flex-shrink: 0 !important;
   }
 
