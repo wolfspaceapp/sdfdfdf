@@ -86,6 +86,18 @@ button:active,
   }
 }
 
+/* Extender protección de fondo blanco a todos los elementos interactivos */
+.card, .scard, .recent-card, .slider-card, .cw-card, .cat-card,
+.history-item, .settings-item, .project-item,
+.mylist-add-btn, .cta-btn, .ws-btn, .mylist-remove-btn,
+.cw-play-btn, .cw-remove-btn, .search-clear,
+.filter-chip, .sub-view-back, .sub-view-close,
+[data-nav], .ep-tab-btn, .season-option-modal,
+#season-modal-trigger, #btn-sort-episodes {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
 /* Transiciones suaves para todos los elementos interactivos */
 button, a, .btn, [role="button"] {
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
@@ -3904,7 +3916,7 @@ input[type="text"]::-ms-clear {
     border-radius: 30px;
     font-size: 13px;
     font-weight: 600;
-    z-index: 1000;
+    z-index: 99999;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.1);
     transition: transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28), opacity 0.3s;
