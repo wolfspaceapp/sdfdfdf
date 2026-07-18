@@ -1780,3 +1780,36 @@ body {
 .ep-switch {
   cursor: pointer;
 }
+
+/* ══════════════════════════════════════════════════════════
+   OVERRIDES PARA LISTA COMPACTA HORIZONTAL
+   ══════════════════════════════════════════════════════════ */
+#episodes-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  padding: 0 !important;
+}
+.ep-card.ep-card-compact {
+  flex-direction: row !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  transform: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+}
+@media (hover: hover) {
+  .ep-card.ep-card-compact:hover {
+    background: rgba(255,255,255,0.03) !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+.ep-card.ep-card-compact:active {
+  background: rgba(255,255,255,0.06) !important;
+  transform: none !important;
+}
+.ep-card.ep-card-compact.current-episode {
+  background: rgba(0,230,118,0.08) !important;
+}
