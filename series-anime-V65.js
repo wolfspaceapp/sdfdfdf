@@ -567,8 +567,8 @@ function renderTabs() {
 
     const isPC = GLOBAL_IS_PC;
     const boxBottomStyle = isPC
-        ? 'position:relative;margin:auto;background:#000;border-radius:16px;padding:0;max-width:420px;width:90%;display:flex;flex-direction:column;overflow:hidden;transform:scale(0.9);transition:transform 0.25s cubic-bezier(0.32,0.72,0,1)'
-        : 'position:absolute;bottom:0;left:0;right:0;background:#000;border-radius:20px 20px 0 0;padding:0;max-height:70vh;display:flex;flex-direction:column;overflow:hidden;transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1)';
+        ? 'background:#111;border-radius:16px;padding:0;max-width:420px;width:90%;display:flex;flex-direction:column;overflow:hidden;transform:scale(0.9);transition:transform 0.25s cubic-bezier(0.32,0.72,0,1)'
+        : 'position:absolute;bottom:0;left:0;right:0;background:#111;border-radius:20px 20px 0 0;padding:0;max-height:70vh;display:flex;flex-direction:column;overflow:hidden;transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.32,0.72,0,1)';
     const overlayAlignStyle = isPC
         ? 'display:flex;align-items:center;justify-content:center'
         : '';
@@ -583,7 +583,7 @@ function renderTabs() {
         </button>
 
         <!-- Modal overlay -->
-        <div id="season-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);${overlayAlignStyle}" role="dialog" aria-modal="true" aria-label="Seleccionar temporada">
+        <div id="season-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);${overlayAlignStyle}" role="dialog" aria-modal="true" aria-label="Seleccionar temporada">
           <div id="season-modal-box" style="${boxBottomStyle}">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0">
               <span style="font-size:15px;font-weight:800;color:#fff">Temporadas</span>
@@ -639,6 +639,7 @@ function renderTabs() {
     if (trigger) trigger.addEventListener('click', openModal);
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
     if (overlay) overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    if (box) box.addEventListener('click', e => e.stopPropagation());
 
     // Opciones de temporada
     container.querySelectorAll('.season-option-modal').forEach(btn => {
@@ -1158,7 +1159,7 @@ function openSortModal() {
     
     const overlay = document.createElement('div');
     overlay.id = 'ep-sort-modal-overlay';
-    overlay.style.cssText = `position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);display:flex;${isPC ? 'align-items:center;justify-content:center' : 'align-items:flex-end;justify-content:center'};opacity:0;transition:opacity 0.2s`;
+    overlay.style.cssText = `position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);display:flex;${isPC ? 'align-items:center;justify-content:center' : 'align-items:flex-end;justify-content:center'};opacity:0;transition:opacity 0.2s`;
     
     const sheet = document.createElement('div');
     const sheetStyle = isPC
@@ -1205,6 +1206,7 @@ function openSortModal() {
     
     document.getElementById('ep-sort-close').addEventListener('click', closeSortModal);
     overlay.addEventListener('click', e => { if (e.target === overlay) closeSortModal(); });
+    sheet.addEventListener('click', e => e.stopPropagation());
     
     overlay.querySelectorAll('.ep-sort-option').forEach(btn => {
         btn.addEventListener('click', () => {
