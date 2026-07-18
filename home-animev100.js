@@ -464,7 +464,6 @@
         renderFavorites();
         renderProfile();
         renderCategories();
-        renderContinueWatching();
         renderFilterChips();
         if (state.view === 'all-library') renderAllLibrary();
         if (state.view === 'search') renderSearch($('search-input')?.value || '', state.catFilter);
@@ -785,204 +784,6 @@
         });
 
         renderHomeFavs();
-        renderContinueWatching();
-    }
-
-    // ── Continuar Viendo ───────────────────────────────────────
-    function getCWItems() {
-        const items = [];
-        const seenIds = new Set();
-        const allKeys = Object.keys(localStorage);
-
-        console.log('CW: Scanning ' + allKeys.length + ' keys in localStorage');
-
-        // 1. Primary: Rich metadata (wa_cw_meta_)
-        allKeys.forEach(k => {
-            if (!k.startsWith('wa_cw_meta_')) return;
-            try {
-                const m = JSON.parse(localStorage.getItem(k));
-                // We trust the meta item if it exists and hasn't been explicitly cleared (which happens at >95% progress)
-                if (m && m.resumeKey) {
-                    if (!m.serieUrl && m.serieId) m.serieUrl = 'go:' + m.serieId;
-                    items.push(m);
-                    seenIds.add(String(m.serieId));
-                    console.log('CW: Found meta for ' + m.serieId);
-                } else if (m) {
-                    console.log('CW: Removing stale meta for ' + m.serieId);
-                    localStorage.removeItem(k);
-                }
-            } catch(e) { 
-                console.error('CW: Error parsing metadata for key ' + k, e);
-                localStorage.removeItem(k); 
-            }
-        });
-
-        // 2. Secondary: Legacy resume_ keys without metadata
-        allKeys.forEach(k => {
-            if (!k.startsWith('wa_resume_')) return;
-            
-            const parts = k.split('_'); 
-            if (parts.length < 4) return;
-            
-            const rawId = parts[2];
-            if (seenIds.has(rawId)) return;
-
-            const info = (window.DATA || []).find(d => String(d.id) === rawId || d.url === 'go:' + rawId);
-            if (info) {
-                const seasonStr = parts[3] || 's0';
-                const epStr = parts[4] || 'e1';
-                const epNum = epStr.startsWith('e') ? parseInt(epStr.slice(1)) : 1;
-                
-                items.push({
-                    serieId: rawId,
-                    serieTitle: info.title,
-                    poster: info.poster || info.image || '',
-                    serieUrl: 'go:' + rawId,
-                    seasonLabel: '',
-                    epNum: epNum,
-                    epTitle: '',
-                    progress: 50, 
-                    updatedAt: 0,
-                    resumeKey: k
-                });
-                seenIds.add(rawId);
-                console.log('CW: Found legacy progress for ' + rawId);
-            }
-        });
-
-        const sorted = items.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-        console.log('CW: Total items to show: ' + sorted.length);
-        return sorted;
-    }
-
-    function fmtCWTime(s) {
-        if (!s) return '';
-        s = Math.floor(s);
-        const m = Math.floor(s / 60);
-        const ss = String(s % 60).padStart(2, '0');
-        return m + ':' + ss;
-    }
-
-    function navigateToSerie(serieUrl) {
-        if (!serieUrl) return;
-        location.href = serieUrl;
-    }
-
-    function cwCardHTML(m, idx) {
-        let poster = m.poster;
-        if (!poster && window.DATA) {
-            const info = window.DATA.find(d => String(d.id) === String(m.serieId) || d.url === 'go:' + m.serieId);
-            if (info) poster = info.poster || info.image || '';
-        }
-
-        const posterStyle = poster
-            ? `background-image:url('${poster}');background-size:cover;background-position:center`
-            : 'background:linear-gradient(135deg,#0a1628,#001a0d)';
-        const pct = Math.min(100, Math.max(2, m.progress || 0));
-        const timeLeft = m.duration && m.currentTime ? fmtCWTime(m.duration - m.currentTime) : '';
-        const subLabel = m.epType === 'movie'
-            ? `Película`
-            : `${m.seasonLabel ? m.seasonLabel + ' · ' : ''}Ep. ${m.epNum}${m.epTitle ? ' — ' + m.epTitle : ''}`;
-
-        return `<div class="cw-card" data-cw-idx="${idx}" data-cw-key="${m.serieId}">
-  <div class="cw-thumb" style="${posterStyle}">
-    <div class="cw-thumb-overlay"></div>
-    <div class="cw-play-btn">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-    </div>
-    <button class="cw-remove-btn" data-cw-remove="${m.serieId}" aria-label="Quitar de Continuar Viendo">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-    <div class="cw-progress-bar"><div class="cw-progress-fill" style="width:${pct}%"></div></div>
-  </div>
-  <div class="cw-info">
-    <div class="cw-title">${m.serieTitle}</div>
-    <div class="cw-sub">${subLabel}</div>
-    ${timeLeft ? `<div class="cw-time-left">${timeLeft} restante</div>` : ''}
-  </div>
-</div>`;
-    }
-
-    function renderContinueWatching(isSync = false) {
-        const section = $('cw-section');
-        const track = $('cw-track');
-        if (!section || !track) return;
-
-        let items = getCWItems();
-        
-        // Filter H content if disabled
-        if (!hCatEnabled) {
-            items = items.filter(m => {
-                // Check isH flag saved directly in CW metadata
-                if (m.isH) return false;
-                // Also check against DATA if available
-                const info = (window.DATA || []).find(d => String(d.id) === String(m.serieId) || d.url === 'go:' + m.serieId);
-                return !isH(info);
-            });
-        }
-
-        if (!items.length) { 
-            section.style.display = 'none'; 
-            console.log('CW: No items to show');
-            return; 
-        }
-
-        // ── Smart update for real-time sync (avoid flickering) ──
-        if (isSync && track.children.length === items.length) {
-            let matches = 0;
-            items.forEach((m, i) => {
-                const card = track.querySelector(`.cw-card[data-cw-key="${m.serieId}"]`);
-                if (card) {
-                    matches++;
-                    const fill = card.querySelector('.cw-progress-fill');
-                    if (fill) fill.style.width = `${Math.min(100, Math.max(2, m.progress || 0))}%`;
-                    const sub = card.querySelector('.cw-sub');
-                    const subLabel = m.epType === 'movie' ? `Película` : `${m.seasonLabel ? m.seasonLabel + ' · ' : ''}Ep. ${m.epNum}${m.epTitle ? ' — ' + m.epTitle : ''}`;
-                    if (sub && sub.textContent !== subLabel) sub.textContent = subLabel;
-                    const tl = card.querySelector('.cw-time-left');
-                    if (tl && m.duration) {
-                        const timeText = `${fmtCWTime(m.duration - m.currentTime)} restante`;
-                        if (tl.textContent !== timeText) tl.textContent = timeText;
-                    }
-                }
-            });
-            if (matches === items.length) return; // All updated smoothly
-        }
-
-        console.log('CW: Full render (' + items.length + ' items)');
-        section.style.display = '';
-        track.innerHTML = items.map((m, i) => cwCardHTML(m, i)).join('');
-
-        track.onclick = (e) => {
-            const removeBtn = e.target.closest('.cw-remove-btn');
-            if (removeBtn) {
-                e.stopPropagation();
-                _pendingCWDeleteId = removeBtn.dataset.cwRemove;
-                openModal('cw-delete-confirm-overlay');
-                return;
-            }
-            
-            const card = e.target.closest('.cw-card');
-            if (card) {
-                const idx = parseInt(card.dataset.cwIdx);
-                const m = items[idx];
-                if (m) {
-                    console.log('CW: Navigating to', m.serieUrl);
-                    // Add resume parameters to bypass detail section
-                    let url = m.serieUrl;
-                    if (m.epType === 'movie') {
-                        // For movies, just add a resume indicator
-                        url += (url.includes('?') ? '&' : '?') + 'resume=1';
-                    } else {
-                        // For series, add season and episode info
-                        const seasonIdx = m.seasonIdx !== undefined ? m.seasonIdx : 0;
-                        const epNum = m.epNum || 1;
-                        url += (url.includes('?') ? '&' : '?') + `s=${seasonIdx}&e=${epNum}`;
-                    }
-                    navigateToSerie(url);
-                }
-            }
-        };
     }
 
 
@@ -2270,7 +2071,6 @@
                 });
 
                 closeModal('cw-delete-confirm-overlay');
-                renderContinueWatching();
                 _pendingCWDeleteId = null;
                 showToast('Eliminado de Continuar Viendo');
             });
@@ -2279,13 +2079,6 @@
         ["backup-text-overlay", "restore-text-overlay", "h-confirm-overlay", "cw-delete-confirm-overlay"].forEach(id => {
             const o = $(id);
             if (o) o.addEventListener("click", e => { if (e.target === o) closeModal(id); });
-        });
-
-        // ── Real-time Sync ──
-        window.addEventListener('storage', (e) => {
-            if (e.key && (e.key.startsWith('wa_cw_meta_') || e.key.startsWith('wa_resume_'))) {
-                renderContinueWatching(true);
-            }
         });
 
         setTimeout(observeImages, 300);
