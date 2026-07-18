@@ -2423,7 +2423,8 @@ if (isInitMovie) {
     renderEpisodes(true);
 
     // Actualizar el label del Smart Play Button con el estado de progreso actual
-    if (window._serieDetailShown !== false) {
+    // Se llama siempre que la sección de detalles esté en el DOM
+    if (document.getElementById('serie-detail-section')) {
         updateSmartPlayLabel();
     }
 
