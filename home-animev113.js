@@ -85,6 +85,17 @@
             heroCta2.style.display = h.cta2Label ? '' : 'none';
         }
 
+        // Hero favorites button
+        const heroFavBtn = document.getElementById('hero-fav-btn');
+        if (heroFavBtn && h.heroId != null) {
+            const hid = h.heroId;
+            heroFavBtn.style.display = '';
+            heroFavBtn.dataset.fav = hid;
+            const active = isFav(hid);
+            heroFavBtn.classList.toggle('active', active);
+            heroFavBtn.querySelector('svg').setAttribute('fill', active ? 'currentColor' : 'none');
+        }
+
         // Banner de perfil
         const profileBanner = document.getElementById('profile-banner');
         if (profileBanner) {
@@ -139,6 +150,9 @@
         return `class="${classes} lazy-bg" data-bg="${bgStr}"`;
     }
 
+    // --- Image Cache for GIFs and posters ---
+    const IMG_CACHE = {};
+
     // --- Lazy Loading Hybrid System ---
     function forceLoadImage(el) {
         if (el.dataset.loading === '1') return;
@@ -149,9 +163,32 @@
 
         const match = bgStr.match(/url\(['"]?([^'"\)]+)['"]?\)/);
         if (match && match[1]) {
+            const url = match[1];
+
+            // Check cache first
+            if (IMG_CACHE[url]) {
+                el.style.backgroundImage = `url('${url}')`;
+                if (el.classList.contains('cat-card')) {
+                    el.style.setProperty('background-size', '100% 100%', 'important');
+                    el.style.setProperty('background-position', 'center', 'important');
+                }
+                el.style.backgroundRepeat = 'no-repeat';
+                const currentAnim = el.style.animation || '';
+                if (currentAnim.includes('shimmer')) {
+                    el.style.animation = currentAnim.split(',').filter(a => !a.includes('shimmer')).join(',').trim() || 'none';
+                } else if (!el.style.animation) {
+                    el.style.animation = 'none';
+                }
+                el.classList.add('loaded');
+                return;
+            }
+
             const img = new Image();
             const applyBg = () => {
-                el.style.backgroundImage = `url('${match[1]}')`;
+                // Store in cache
+                IMG_CACHE[url] = img;
+
+                el.style.backgroundImage = `url('${url}')`;
                 if (el.classList.contains('cat-card')) {
                     el.style.setProperty('background-size', '100% 100%', 'important');
                     el.style.setProperty('background-position', 'center', 'important');
@@ -169,7 +206,7 @@
             };
             img.onload = applyBg;
             img.onerror = applyBg;
-            img.src = match[1];
+            img.src = url;
 
             if (img.complete) {
                 applyBg();
@@ -958,13 +995,6 @@
         const track = document.getElementById('cw-track');
         if (!section || !track) return;
 
-        // Build a lookup map from DATA for H-tag checking
-        const dataMap = {};
-        for (let i = 0; i < DATA.length; i++) {
-            const d = DATA[i];
-            if (d && d.id) dataMap[d.id] = d;
-        }
-
         // Collect all CW metadata from localStorage
         const items = [];
         for (let i = 0; i < localStorage.length; i++) {
@@ -974,10 +1004,8 @@
                     const meta = JSON.parse(localStorage.getItem(k));
                     if (meta && meta.serieId && meta.progress > 0 && meta.progress < 95) {
                         // Filter out H-tagged content when +18 is disabled
-                        if (!hCatEnabled) {
-                            const entry = dataMap[meta.serieId];
-                            if (entry && isH(entry)) continue;
-                        }
+                        // meta.isH is saved directly from SERIE.tags in series-anime-V72.js
+                        if (!hCatEnabled && meta.isH) continue;
                         items.push(meta);
                     }
                 } catch (e) {}
@@ -1246,7 +1274,7 @@
         if (items.length === 0) {
             $('cat-library-grid').innerHTML = `
       <div class="empty-state" style="grid-column:1/-1;padding:60px 20px;text-align:center">
-        <span style="font-size:48px">📭</span>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text3);margin-bottom:8px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="12" y1="6" x2="12" y2="12"/><line x1="9" y1="9" x2="15" y2="9"/></svg>
         <p style="margin-top:12px;font-size:16px;font-weight:700;color:var(--text2)">Sin contenido aún</p>
         <small style="color:var(--text3);font-size:13px">No hay series en esta categoría todavía</small>
       </div>`;
@@ -1303,9 +1331,9 @@
         <span class="scard-pill">${item.date ? item.date.slice(0, 4) : ''}</span>
       </div>
       <div class="fav-watch-btns">
-        <button class="ws-btn${ws === 'Viendo' ? ' active' : ''}" data-ws="Viendo" data-ws-item="${item.id}">▶ Viendo</button>
-        <button class="ws-btn${ws === 'Completado' ? ' active' : ''}" data-ws="Completado" data-ws-item="${item.id}">✓ Completado</button>
-        <button class="ws-btn${ws === 'Pendiente' ? ' active' : ''}" data-ws="Pendiente" data-ws-item="${item.id}">⏳ Pendiente</button>
+        <button class="ws-btn${ws === 'Viendo' ? ' active' : ''}" data-ws="Viendo" data-ws-item="${item.id}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Viendo</button>
+        <button class="ws-btn${ws === 'Completado' ? ' active' : ''}" data-ws="Completado" data-ws-item="${item.id}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Completado</button>
+        <button class="ws-btn${ws === 'Pendiente' ? ' active' : ''}" data-ws="Pendiente" data-ws-item="${item.id}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pendiente</button>
       </div>
     </div>
     <button class="mylist-remove-btn" data-remove="${item.id}" aria-label="Eliminar de Mi Lista">
@@ -1521,15 +1549,53 @@
     // ── Modal Mi Lista ──────────────────────────────────────────
     let modalItemId = null;
     let modalPendingStatus = undefined;
+    let modalPendingCat = undefined;
+
+    // ── Categoría persistente por serie ─────────────────────────
+    const MYLIST_CAT_KEY = 'mylist_categories_v1';
+    let mylistCategories = {};
+
+    function loadMyListCategories() {
+        try {
+            const raw = localStorage.getItem(MYLIST_CAT_KEY);
+            mylistCategories = raw ? JSON.parse(raw) : {};
+        } catch { mylistCategories = {}; }
+    }
+    function saveMyListCategories() {
+        localStorage.setItem(MYLIST_CAT_KEY, JSON.stringify(mylistCategories));
+    }
+    function getMyListCat(id) { return mylistCategories[id] || null; }
+    function setMyListCat(id, cat) {
+        if (cat) mylistCategories[id] = cat;
+        else delete mylistCategories[id];
+        saveMyListCategories();
+    }
 
     function openMyListModal(id) {
         const item = DATA.find(d => d.id === id);
         if (!item) return;
         modalItemId = id;
         modalPendingStatus = undefined;
+        modalPendingCat = undefined;
 
         document.getElementById('modal-poster').style.background = posterBg(item);
         document.getElementById('modal-title').textContent = item.title;
+
+        // Renderizar opciones de categoría dinámicamente
+        const catContainer = document.getElementById('modal-cat-options');
+        if (catContainer) {
+            const cats = CATEGORIES.length ? CATEGORIES : [];
+            const currentCat = getMyListCat(id);
+            catContainer.innerHTML = cats.map(cat => {
+                const isActive = currentCat === cat;
+                const iconHtml = CAT_ICONS_MAP[cat] || `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`;
+                return `<label class="modal-opt${isActive ? ' active' : ''}" data-modal-cat="${cat}">
+                    <span class="modal-opt-icon">${iconHtml}</span>
+                    <span class="modal-opt-label">${cat}</span>
+                    <span class="modal-radio${isActive ? ' checked' : ''}" id="modal-cat-check-${cat.replace(/\s+/g,'-')}"/>
+                </label>`;
+            }).join('');
+        }
 
         updateModalChecks();
 
@@ -1579,6 +1645,7 @@
         }
         modalItemId = null;
         modalPendingStatus = undefined;
+        modalPendingCat = undefined;
     }
 
     $('mylist-modal-overlay').addEventListener('click', e => {
@@ -1596,9 +1663,30 @@
         updateModalChecks();
     });
 
+    // Click handler para categorías en el modal
+    document.getElementById('mylist-modal').addEventListener('click', e => {
+        const catOpt = e.target.closest('[data-modal-cat]');
+        if (!catOpt || modalItemId === null) return;
+        const cat = catOpt.dataset.modalCat;
+        const currentCat = modalPendingCat !== undefined ? modalPendingCat : getMyListCat(modalItemId);
+        modalPendingCat = currentCat === cat ? null : cat;
+        // Actualizar UI de categorías
+        document.querySelectorAll('#modal-cat-options .modal-opt').forEach(el => {
+            const c = el.dataset.modalCat;
+            const isActive = c === modalPendingCat;
+            el.classList.toggle('active', isActive);
+            const radio = el.querySelector('.modal-radio');
+            if (radio) radio.classList.toggle('checked', isActive);
+        });
+    });
+
     $('modal-confirm-btn').addEventListener('click', () => {
         if (modalItemId === null || modalPendingStatus === undefined) return;
         setWatchStatus(modalItemId, modalPendingStatus || null);
+        // Guardar categoría si se seleccionó
+        if (modalPendingCat !== undefined) {
+            setMyListCat(modalItemId, modalPendingCat || null);
+        }
         closeMyListModal();
     });
 
@@ -1816,6 +1904,7 @@
 
     function init() {
         buildSearchCache(); // Construir caché de búsqueda
+        loadMyListCategories(); // Cargar categorías de Mi Lista
 
         function handleWelcomeClose() {
             const cb = $('welcome-dont-show-cb');
