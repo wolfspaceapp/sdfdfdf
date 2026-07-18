@@ -590,14 +590,14 @@ function initRecommendedTab() {
             if (tab === 'episodes') {
                 episodesList.style.display = '';
                 recommendedList.style.display = 'none';
-                if (sectionHeader) sectionHeader.style.display = '';
+                if (sectionHeader) sectionHeader.style.display = 'flex';
                 // Restaurar padding original de episodes-list si se modificó
                 episodesList.style.padding = '';
             } else if (tab === 'recommended') {
                 episodesList.style.display = 'none';
                 recommendedList.style.display = 'block';
                 // NO ocultar el sectionHeader para que temporada y ordenar no se muevan
-                if (sectionHeader) sectionHeader.style.display = '';
+                if (sectionHeader) sectionHeader.style.display = 'flex';
 
                 // Cargar recomendados si no se han cargado aún
                 if (!recommendedList.dataset.loaded) {
@@ -892,13 +892,6 @@ function renderEpisodeCard(ep, seasonIdx, watchedMap, resumeData) {
     ${ep.synopsis ? `<div class="ep-compact-synopsis">${ep.synopsis}</div>` : ''}
     <div class="ep-compact-footer">
       ${durationFmt ? `<span class="ep-compact-duration">${durationFmt}</span>` : '<div></div>'}
-      <label class="ep-compact-switch" data-season="${seasonIdx}" data-episode="${ep.num}" aria-label="${watched ? 'Marcar como no visto' : 'Marcar como visto'}" onclick="event.stopPropagation()">
-        <span class="ep-compact-switch-label${watched ? ' on' : ''}" id="lbl-${seasonIdx}-${ep.num}">${watched ? 'Visto' : 'Marcar'}</span>
-        <div class="ep-compact-switch-track${watched ? ' on' : ''}">
-          <input type="checkbox" ${watched ? 'checked' : ''} style="display:none">
-          <div class="ep-compact-switch-thumb"></div>
-        </div>
-      </label>
     </div>
   </div>
 </div>`;
@@ -1032,49 +1025,10 @@ function renderEpisodes(animate) {
             // ── Event delegation: card click → play ───────────────
             list.querySelectorAll('.ep-card-compact').forEach(c =>
                 c.addEventListener('click', e => {
-                    if (e.target.closest('.ep-compact-switch')) return;
                     const s = +c.dataset.season, epNum = +c.dataset.episode;
                     playEpisode(s, epNum);
                 })
             );
-
-            // ── Event delegation: watched toggle (FIXED) ──────────
-            list.querySelectorAll('.ep-compact-switch').forEach(sw => {
-                // Remove old listeners to prevent duplicates
-                const newSw = sw.cloneNode(true);
-                sw.parentNode.replaceChild(newSw, sw);
-                
-                newSw.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    
-                    const s = +this.dataset.season;
-                    const ep = +this.dataset.episode;
-                    const input = this.querySelector('input');
-                    const track = this.querySelector('.ep-compact-switch-track');
-                    const lbl = document.getElementById(`lbl-${s}-${ep}`);
-                    
-                    const newVal = !input.checked;
-                    input.checked = newVal;
-                    
-                    setWatched(s, ep, newVal);
-                    
-                    if (lbl) { lbl.textContent = newVal ? 'Visto' : 'Marcar'; lbl.classList.toggle('on', newVal); }
-                    if (track) track.classList.toggle('on', newVal);
-                    
-                    // Update watched badge immediately
-                    const card = list.querySelector(`.ep-card-compact[data-season="${s}"][data-episode="${ep}"]`);
-                    if (card) {
-                        const badge = card.querySelector('.ep-compact-watched-badge');
-                        if (badge) {
-                            badge.style.display = newVal ? '' : 'none';
-                        }
-                        card.classList.toggle('watched', newVal);
-                    }
-                    
-                    this.setAttribute('aria-label', newVal ? 'Marcar como no visto' : 'Marcar como visto');
-                });
-            });
 
             if (animate) {
                 list.classList.remove('season-change');
