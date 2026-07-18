@@ -169,9 +169,11 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+@media (hover: hover) {
 .season-dropdown-btn:hover {
   background: var(--bg3);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
 }
 
 .season-dropdown-btn:active {
@@ -244,8 +246,10 @@ body {
   border-radius: 3px;
 }
 
+@media (hover: hover) {
 .season-dropdown-menu::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
+}
 }
 
 .season-option {
@@ -268,10 +272,12 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+@media (hover: hover) {
 .season-option:hover,
 .season-option:focus {
   background: var(--bg3);
   color: var(--text);
+}
 }
 
 .season-option:focus-visible {
@@ -381,6 +387,11 @@ body {
   to   { opacity: 1; transform: translateY(0) }
 }
 
+@keyframes pc-hero-in {
+  from { opacity: 0; transform: translateY(30px) }
+  to   { opacity: 1; transform: translateY(0) }
+}
+
 .episodes-list.season-change .ep-card-compact {
   opacity: 0;
   animation: ep-fade-in 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
@@ -411,29 +422,28 @@ body {
   -webkit-tap-highlight-color: transparent;
   background: transparent;
   border: none;
-  border-radius: 10px;
   transition: background 0.2s ease;
 }
 
+@media (hover: hover) {
 .ep-card-compact:hover {
   background: rgba(255, 255, 255, 0.04);
+}
 }
 
 .ep-card-compact:active {
   background: rgba(255, 255, 255, 0.07);
 }
 
-.ep-card-compact.current-episode {
-  background: rgba(0, 230, 118, 0.07);
-  border: 1px solid rgba(0, 230, 118, 0.15);
-}
 
 .ep-card-compact.watched {
   opacity: 0.65;
 }
 
+@media (hover: hover) {
 .ep-card-compact.watched:hover {
   opacity: 1;
+}
 }
 
 /* ── Miniatura ── */
@@ -457,8 +467,10 @@ body {
   transition: transform 0.3s ease;
 }
 
+@media (hover: hover) {
 .ep-card-compact:hover .ep-compact-thumb-img {
   transform: scale(1.05);
+}
 }
 
 /* ── Overlay play al hover ── */
@@ -474,8 +486,10 @@ body {
   z-index: 2;
 }
 
+@media (hover: hover) {
 .ep-card-compact:hover .ep-compact-thumb-overlay {
   opacity: 1;
+}
 }
 
 @media (hover: none) {
@@ -596,6 +610,59 @@ body {
   border-radius: 4px;
 }
 
+
+/* ── Switch de visto (ep-compact-switch) ──────────────────── */
+.ep-compact-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.ep-compact-switch-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text3);
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+
+.ep-compact-switch-label.on {
+  color: #00e676;
+}
+
+.ep-compact-switch-track {
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--bg4);
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.ep-compact-switch-track.on {
+  background: #00e676;
+}
+
+.ep-compact-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.ep-compact-switch-track.on .ep-compact-switch-thumb {
+  transform: translateX(16px);
+}
 
 /* ── Responsive ── */
 @media (max-width: 480px) {
@@ -1099,8 +1166,10 @@ body {
   transition: opacity 0.25s ease;
 }
 
+@media (hover: hover) {
 .continue-btn:hover::before {
   opacity: 1;
+}
 }
 
 .continue-btn:active {
@@ -1209,9 +1278,11 @@ body {
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
+@media (hover: hover) {
 .continue-btn:hover .continue-btn-arrow {
   background: rgba(0, 230, 118, 0.15);
   transform: translateX(2px);
+}
 }
 
 .continue-btn-arrow svg {
@@ -1255,8 +1326,10 @@ body {
   transition: opacity 0.25s ease;
 }
 
+@media (hover: hover) {
 .play-btn:hover::after {
   opacity: 1;
+}
 }
 
 .play-btn:active {
@@ -1279,6 +1352,176 @@ body {
 .play-btn span {
   position: relative;
   z-index: 1;
+}
+
+/* ══════════════════════════════════════════════════════════
+   SMART PLAY BUTTON — CONTINUAR / REPRODUCIR
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Contenedor base del botón ── */
+#btn-reproducir-serie {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  padding: 0 !important;
+  background: var(--accent) !important;
+  border: none !important;
+  border-radius: 14px !important;
+  color: #000 !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  font-family: inherit !important;
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  overflow: hidden !important;
+  min-height: 56px;
+}
+
+#btn-reproducir-serie:active {
+  transform: scale(0.97) !important;
+}
+
+#btn-reproducir-serie:focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px !important;
+}
+
+/* ── Layout interno: Continuar ── */
+.spb-continue {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+}
+
+.spb-icon {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.spb-icon svg {
+  width: 18px;
+  height: 18px;
+  color: #000;
+}
+
+.spb-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.spb-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.spb-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.spb-meta {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spb-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spb-time {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.08);
+  padding: 1px 7px;
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.spb-progress {
+  flex: 1;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  max-width: 80px;
+}
+
+.spb-progress-fill {
+  height: 100%;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+.spb-arrow {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+@media (hover: hover) {
+  #btn-reproducir-serie:hover .spb-arrow {
+    transform: translateX(2px);
+    background: rgba(0, 0, 0, 0.18);
+  }
+}
+
+/* ── Layout interno: Reproducir (sin progreso) ── */
+.spb-play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 20px;
+  width: 100%;
+}
+
+.spb-play .spb-icon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+}
+
+.spb-play-text {
+  font-size: 16px;
+  font-weight: 800;
+  color: #000;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1310,107 +1553,148 @@ body {
    ══════════════════════════════════════════════════════════ */
 
 @media (min-width: 1024px) {
+  /* ── Backdrop Cinematográfico ── */
+  #serie-detail-backdrop {
+    height: 480px !important;
+  }
+  #serie-detail-backdrop::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom,
+      rgba(10,10,10,0.15) 0%,
+      rgba(10,10,10,0.4) 40%,
+      rgba(10,10,10,0.85) 75%,
+      var(--bg) 100%
+    );
+    pointer-events: none;
+  }
+
   /* Layout principal de detalle */
   #serie-detail-section {
     padding-top: 0;
   }
+  #serie-detail-section.is-pc {
+    /* Extra polish when JS detects PC */
+  }
 
-  /* Hero / Poster + Info en desktop */
+  /* Hero / Poster + Info en desktop — cinematic layout */
   .serie-detail-hero {
     display: flex;
-    gap: 40px;
-    padding: 80px 48px 48px;
-    align-items: flex-start;
+    gap: 48px;
+    padding: 60px 48px 48px;
+    align-items: flex-end;
     max-width: 1400px;
-    margin: 0 auto;
+    margin: -120px auto 0;
+    position: relative;
+    z-index: 2;
+    animation: pc-hero-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
 
   .serie-detail-poster {
-    width: 320px;
-    min-width: 320px;
-    border-radius: 16px;
+    width: 360px;
+    min-width: 360px;
+    border-radius: 18px;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.06);
     flex-shrink: 0;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+  }
+  .serie-detail-poster:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 32px 100px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255,255,255,0.1);
   }
 
   .serie-detail-poster img {
     width: 100%;
     display: block;
-    border-radius: 16px;
+    border-radius: 18px;
   }
 
   .serie-detail-info {
     flex: 1;
     min-width: 0;
-    padding-top: 8px;
+    padding-bottom: 8px;
   }
 
   .serie-detail-info h1 {
-    font-size: 36px;
+    font-size: 44px;
     font-weight: 900;
-    line-height: 1.15;
-    margin-bottom: 12px;
-    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 14px;
+    color: #fff;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    background: linear-gradient(135deg, #fff 40%, rgba(0,230,118,0.7) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .serie-detail-meta {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     flex-wrap: wrap;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
   }
 
   .serie-detail-meta-item {
     font-size: 13px;
     font-weight: 600;
-    color: var(--text2);
-    padding: 4px 12px;
-    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255,255,255,0.7);
+    padding: 5px 14px;
+    background: rgba(255, 255, 255, 0.08);
     border-radius: 20px;
+    backdrop-filter: blur(4px);
   }
 
   .serie-detail-meta-item.accent {
     color: var(--accent);
-    background: rgba(0, 230, 118, 0.1);
+    background: rgba(0, 230, 118, 0.15);
   }
 
   .serie-detail-synopsis {
-    font-size: 15px;
-    line-height: 1.7;
-    color: var(--text2);
-    max-width: 700px;
-    margin-bottom: 24px;
+    font-size: 16px;
+    line-height: 1.8;
+    color: rgba(255,255,255,0.65);
+    max-width: 720px;
+    margin-bottom: 28px;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.2);
   }
 
   .serie-detail-actions {
     display: flex;
-    gap: 12px;
-    margin-bottom: 24px;
+    gap: 14px;
+    margin-bottom: 28px;
   }
 
   .serie-detail-actions .play-btn {
-    max-width: 220px;
+    max-width: 240px;
   }
 
   .serie-detail-actions .continue-btn {
-    max-width: 380px;
+    max-width: 400px;
   }
 
   /* Info adicional en columnas */
   .serie-detail-extras {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
-    margin-top: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin-top: 20px;
   }
 
   .serie-detail-extra-item {
-    padding: 12px 16px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: background 0.25s ease, border-color 0.25s ease;
+  }
+  .serie-detail-extra-item:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.1);
   }
 
   .serie-detail-extra-item-label {
@@ -1428,37 +1712,148 @@ body {
     color: var(--text);
   }
 
-  /* Episodios en desktop */
+  /* ── Episodios en desktop: Grid de 2 columnas ── */
   .episodes-list {
-    padding: 16px 48px 48px;
+    padding: 20px 48px 48px;
     max-width: 1400px;
     margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
   }
 
   .ep-card-compact {
-    padding: 14px 18px;
+    padding: 16px 20px;
     gap: 18px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.04);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.3s ease,
+                background 0.25s ease,
+                border-color 0.25s ease;
+    cursor: pointer;
+  }
+  .ep-card-compact:hover {
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+    background: rgba(255,255,255,0.04);
+    border-color: rgba(255,255,255,0.08);
+  }
+  .ep-card-compact:active {
+    transform: translateY(-1px) scale(0.99);
   }
 
   .ep-compact-thumb {
-    width: 180px;
-    min-width: 180px;
-    height: 108px;
+    width: 200px;
+    min-width: 200px;
+    height: 118px;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+  }
+  .ep-card-compact:hover .ep-compact-thumb {
+    transform: scale(1.03);
   }
 
   .ep-compact-title {
     font-size: 16px;
+    font-weight: 700;
   }
 
   .ep-compact-synopsis {
     font-size: 13px;
     -webkit-line-clamp: 2;
+    line-height: 1.5;
+  }
+
+  .ep-compact-num {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    background: rgba(0,230,118,0.1);
+    padding: 2px 10px;
+    border-radius: 6px;
+  }
+
+  .ep-compact-duration {
+    font-size: 12px;
+    color: var(--text3);
   }
 
   /* Season dropdown en desktop */
   .season-dropdown {
     max-width: 400px;
     margin: 0 48px 16px;
+  }
+
+  /* Season tabs / header area */
+  .episodes-section-header {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 16px 48px 12px !important;
+  }
+
+  /* Tabs bar */
+  #episodes-tabs-bar {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 48px !important;
+  }
+
+  /* ── Smart Play Button en desktop ── */
+  #btn-reproducir-serie {
+    min-height: 60px;
+    border-radius: 16px !important;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.3s ease !important;
+  }
+  #btn-reproducir-serie:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 32px rgba(0, 230, 118, 0.3) !important;
+  }
+  #btn-reproducir-serie:active {
+    transform: scale(0.98);
+  }
+
+  .spb-continue {
+    padding: 12px 18px;
+    gap: 14px;
+  }
+  .spb-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+  .spb-label {
+    font-size: 14px;
+  }
+  .spb-meta {
+    font-size: 13px;
+  }
+  .spb-time {
+    font-size: 12px;
+  }
+  .spb-progress {
+    max-width: 120px;
+    height: 4px;
+  }
+  .spb-arrow {
+    width: 32px;
+    height: 32px;
+    transition: transform 0.25s ease, background 0.25s ease;
+  }
+  #btn-reproducir-serie:hover .spb-arrow {
+    transform: translateX(3px);
+    background: rgba(0,0,0,0.15);
+  }
+
+  .spb-play {
+    padding: 16px 24px;
+    gap: 12px;
+  }
+  .spb-play-text {
+    font-size: 18px;
   }
 
   /* Header en desktop */
@@ -1485,15 +1880,44 @@ body {
   .nav-btn {
     padding: 8px 20px;
     font-size: 13px;
+    border-radius: 10px;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .nav-btn:hover {
+    background: rgba(255,255,255,0.08);
+    transform: scale(1.04);
   }
 
   .action-btn {
     padding: 8px 16px;
     font-size: 13px;
+    border-radius: 10px;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .action-btn:hover {
+    background: rgba(255,255,255,0.08);
+    transform: scale(1.04);
   }
 
   #player-ep-title {
     font-size: 14px;
+  }
+
+  /* ── Scrollbar personalizada para desktop ── */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.2);
   }
 }
 
@@ -2302,8 +2726,10 @@ svg {
   color: #000;
 }
 
+@media (hover: hover) {
 .vp-resume-yes:hover {
   background: #00c76a;
+}
 }
 
 .vp-resume-no {
@@ -2312,9 +2738,11 @@ svg {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+@media (hover: hover) {
 .vp-resume-no:hover {
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
+}
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -2463,9 +2891,11 @@ svg {
   transition: background 0.2s, transform 0.15s, border-color 0.2s;
 }
 
+@media (hover: hover) {
 #report-send-btn:hover {
   background: rgba(255, 70, 70, 0.25);
   border-color: rgba(255, 70, 70, 0.5);
+}
 }
 
 #report-send-btn:active {
@@ -2585,10 +3015,12 @@ svg {
   font-family: inherit;
 }
 
+@media (hover: hover) {
 #cast-modal-download:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.2);
   color: #fff;
+}
 }
 
 #cast-modal-download:active {
@@ -2611,8 +3043,10 @@ svg {
   font-family: inherit;
 }
 
+@media (hover: hover) {
 #cast-modal-transmit:hover {
   background: #00c76a;
+}
 }
 
 #cast-modal-transmit:active {
@@ -2636,8 +3070,10 @@ svg {
   transition: background 0.2s;
 }
 
+@media (hover: hover) {
 #cast-modal label:hover {
   background: rgba(255, 255, 255, 0.06);
+}
 }
 
 #cast-modal label input[type="checkbox"] {
@@ -2869,9 +3305,11 @@ svg {
   box-sizing: border-box;
 }
 
+@media (hover: hover) {
 .vp-picker-opt:hover {
   background: rgba(255, 255, 255, 0.05);
   color: #fff;
+}
 }
 
 .vp-picker-opt:active {
@@ -3089,10 +3527,12 @@ svg {
   animation: rec-card-fade-in 0.4s ease both;
 }
 
+@media (hover: hover) {
 .rec-card:hover {
   transform: translateY(-3px) scale(1.02);
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
   border-color: rgba(0,230,118,0.25);
+}
 }
 
 .rec-card:active {
@@ -3282,8 +3722,10 @@ button, a, .btn, [role="button"] {
   border-radius: 4px;
 }
 
+@media (hover: hover) {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
+}
 }
 
 /* Firefox scrollbar */
