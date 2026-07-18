@@ -596,56 +596,6 @@ body {
   border-radius: 4px;
 }
 
-/* ── Switch de visto ── */
-.ep-compact-switch {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
-
-.ep-compact-switch-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text3);
-  transition: color 0.2s ease;
-}
-
-.ep-compact-switch-label.on {
-  color: var(--accent);
-}
-
-.ep-compact-switch-track {
-  position: relative;
-  width: 32px;
-  height: 18px;
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  transition: background 0.3s ease;
-  flex-shrink: 0;
-}
-
-.ep-compact-switch-track.on {
-  background: var(--accent);
-}
-
-.ep-compact-switch-thumb {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 14px;
-  height: 14px;
-  background: #fff;
-  border-radius: 50%;
-  transition: transform 0.3s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.ep-compact-switch-track.on .ep-compact-switch-thumb {
-  transform: translateX(14px);
-}
 
 /* ── Responsive ── */
 @media (max-width: 480px) {
@@ -1729,26 +1679,6 @@ body {
 
   .ep-compact-duration {
     font-size: 10px;
-  }
-
-  .ep-compact-switch-label {
-    font-size: 10px;
-  }
-
-  .ep-compact-switch-track {
-    width: 28px;
-    height: 16px;
-  }
-
-  .ep-compact-switch-thumb {
-    width: 12px;
-    height: 12px;
-    top: 2px;
-    left: 2px;
-  }
-
-  .ep-compact-switch-track.on .ep-compact-switch-thumb {
-    transform: translateX(12px);
   }
 
   .continue-btn {
