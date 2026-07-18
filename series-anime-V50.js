@@ -651,6 +651,8 @@ function initRecommendedTab() {
 
     tabBtns.forEach(btn => {
         btn.addEventListener('click', function() {
+            // Eliminar focus inmediatamente para evitar fondo blanco persistente en táctil
+            this.blur();
             const tab = this.dataset.tab;
 
             // Actualizar estilos de tabs
@@ -1494,11 +1496,13 @@ function openPicker(type) {
     html += `</div></div>`;
     overlay.innerHTML = html;
     document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
 
     requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('show')));
 
     function closePicker() {
         overlay.classList.remove('show');
+        document.body.style.overflow = '';
         setTimeout(() => overlay.remove(), 300);
     }
 
