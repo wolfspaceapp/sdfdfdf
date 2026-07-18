@@ -1671,21 +1671,20 @@ body {
     position: relative;
     z-index: 2;
     animation: pc-hero-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-    display: grid !important;
-    grid-template-columns: auto 1fr 220px;
-    grid-template-rows: auto auto;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: flex-end !important;
     gap: 12px 24px;
-    align-items: start;
   }
 
-  /* Hero row: poster + info side by side — ocupa col 1-2 */
+  /* Hero row: poster + info side by side */
   #serie-detail-section > div > div[style*="display: flex"][style*="align-items: flex-end"] {
     display: flex !important;
     gap: 24px !important;
     align-items: flex-end !important;
     margin-bottom: 0 !important;
-    grid-column: 1 / 3;
-    grid-row: 1 / 3;
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
   }
 
   /* Poster */
@@ -1728,46 +1727,42 @@ body {
     line-height: 1.5 !important;
   }
 
-  /* Columna derecha: Play button + Meta stats */
+  /* Play button - al lado del poster, en la misma fila del hero */
   #serie-detail-section > div > div[style*="display: flex"][style*="gap: 10px"] {
     margin-bottom: 0 !important;
-    grid-column: 3;
-    grid-row: 1;
-    align-self: end;
-    justify-self: stretch;
+    flex-shrink: 0 !important;
   }
 
-  /* Meta stats - columna derecha debajo del botón */
+  /* Meta stats - fila compacta debajo del hero, ancho completo */
   #serie-detail-meta {
-    padding: 12px 14px !important;
+    padding: 10px 0 !important;
     margin-top: 0 !important;
-    gap: 8px !important;
-    grid-column: 3;
-    grid-row: 2;
+    gap: 0 !important;
     display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    justify-content: center !important;
-    background: rgba(255,255,255,0.03);
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.06);
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    flex: 0 0 100% !important;
   }
   #serie-detail-meta > * {
-    padding: 8px 0 !important;
-    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
-    border-left: none !important;
+    padding: 6px 20px !important;
+    border-left: 1px solid rgba(255,255,255,0.07) !important;
     font-size: 13px;
     display: flex !important;
+    flex-direction: column !important;
     align-items: center !important;
-    gap: 8px;
-    text-align: left !important;
+    gap: 2px;
+    text-align: center !important;
     flex: none !important;
   }
-  #serie-detail-meta > *:last-child {
-    border-bottom: none !important;
+  #serie-detail-meta > *:first-child {
+    border-left: none !important;
+    padding-left: 0 !important;
   }
   #serie-detail-meta .stat-val {
-    font-size: 14px !important;
+    font-size: 16px !important;
   }
 
   /* ── Columna derecha: Episodios en sidebar scrollable ── */
@@ -1933,7 +1928,9 @@ body {
   /* ── Smart Play Button en desktop ── */
   #btn-reproducir-serie {
     min-height: 48px;
-    width: 100% !important;
+    width: auto !important;
+    min-width: 160px;
+    max-width: 240px;
     border-radius: 12px !important;
     transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
                 box-shadow 0.3s ease !important;
