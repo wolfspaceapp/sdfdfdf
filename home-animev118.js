@@ -35,8 +35,98 @@ const qsa = (sel, ctx) => (ctx || document).querySelectorAll(sel);
 
     // ── Punto de entrada principal (se ejecuta al final del archivo) ──
     function init() {
+        initNavigation();
         refreshAllUI();
         startRealtimeListener();
+    }
+
+    // ── Sistema de Navegación ──
+    var _currentView = 'home';
+    var _viewHistory = [];
+
+    function navigateTo(viewName, pushHistory) {
+        if (pushHistory === undefined) pushHistory = true;
+        var prev = _currentView;
+
+        // Ocultar todas las vistas
+        qsa('.view').forEach(function (v) { v.classList.remove('active'); });
+
+        // Mostrar la vista destino
+        var targetEl = $('view-' + viewName);
+        if (!targetEl) {
+            // Fallback: si no existe la vista, ir al home
+            console.warn('[Nav] Vista no encontrada:', viewName, '— volviendo a home');
+            viewName = 'home';
+            targetEl = $('view-home');
+        }
+        if (targetEl) targetEl.classList.add('active');
+
+        // Actualizar estado
+        if (pushHistory && prev !== viewName) _viewHistory.push(prev);
+        _currentView = viewName;
+
+        // Actualizar nav-btn activo (solo tabs principales)
+        var mainViews = ['home', 'search', 'categories', 'favorites', 'settings'];
+        qsa('.nav-btn[data-nav]').forEach(function (btn) {
+            var nav = btn.dataset.nav;
+            btn.classList.toggle('active', nav === viewName || (nav === 'home' && viewName === 'home'));
+        });
+
+        // Si es home, re-renderizar por si los datos cambiaron
+        if (viewName === 'home') {
+            renderHome();
+            renderHomeFavs();
+            renderContinueWatching();
+        }
+
+        // Scroll to top de la vista
+        if (targetEl) targetEl.scrollTop = 0;
+
+        // Guardar estado global
+        window._currentView = viewName;
+    }
+    window.navigateTo = navigateTo;
+
+    function navigateBack() {
+        if (_viewHistory.length > 0) {
+            var prev = _viewHistory.pop();
+            navigateTo(prev, false);
+        } else {
+            navigateTo('home', false);
+        }
+    }
+    window.navigateBack = navigateBack;
+
+    function initNavigation() {
+        // Mostrar la vista home al inicio
+        qsa('.view').forEach(function (v) { v.classList.remove('active'); });
+        var homeView = $('view-home');
+        if (homeView) homeView.classList.add('active');
+        _currentView = 'home';
+
+        // Conectar todos los botones de la barra de navegación
+        qsa('.nav-btn[data-nav]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var target = btn.dataset.nav;
+                if (!target) return;
+                navigateTo(target);
+            });
+        });
+
+        // Conectar 'see-all' y otros elementos con data-nav
+        document.addEventListener('click', function (e) {
+            var el = e.target.closest('[data-nav]');
+            if (!el || el.classList.contains('nav-btn')) return; // ya manejado arriba
+            var target = el.dataset.nav;
+            if (target) navigateTo(target);
+        });
+
+        // Botón atrás del navegador (popstate)
+        window.addEventListener('popstate', function () {
+            navigateBack();
+        });
+
+        console.log('[Nav] Sistema de navegación inicializado — vista inicial: home');
     }
 
     // ── Auto-sync cada 5 minutos ──
